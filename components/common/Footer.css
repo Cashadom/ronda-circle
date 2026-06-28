@@ -1,0 +1,100 @@
+.footer {
+  background: #FF6B5A;
+  color: #FFFFFF;
+  padding: 40px 5% 30px;
+  width: 100%;
+  margin-top: auto;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* 🔥 point.png 5 fois plus grand (22px × 5 = 110px) */
+.footer-icon {
+  width: 110px;
+  height: auto;
+  display: block;
+  flex-shrink: 0;
+}
+
+.footer-brand span {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+}
+
+.footer-tagline {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  color: #FFFFFF;
+  opacity: 0.8;
+  margin: 0;
+  letter-spacing: 0.03em;
+  font-weight: 400;
+}
+
+.footer-links {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.footer-link {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-link:hover {
+  color: #FFFFFF;
+}
+
+.footer-copy {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .footer-inner {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .footer-brand {
+    justify-content: center;
+  }
+
+  .footer-icon {
+    width: 80px; /* un peu plus petit sur mobile mais toujours grand */
+  }
+
+  .footer-links {
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .footer-copy {
+    white-space: normal;
+  }
+}

@@ -1,0 +1,164 @@
+/* ─── Page principale ─────────────────────────────────────────────────────── */
+.home {
+  background: #FFF8F2;
+  min-height: 100vh;
+  width: 100%;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Conteneur principal ────────────────────────────────────────────────── */
+.home-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 5% 0;  /* ← padding réduit (était 80px) */
+  flex: 1;
+  width: 100%;
+}
+
+/* ─── Hero avec fond beige ──────────────────────────────────────────────── */
+.hero-section {
+  background: #FFF8F2;
+  padding: 30px 0 10px;  /* ← padding réduit (était 60px 0 40px) */
+  text-align: center;
+  margin-bottom: 0;
+}
+
+.hero-image {
+  max-width: 500px;  /* ← légèrement réduit */
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+/* ─── Titre "Most popular circles" juste avant les cartes ──────────────── */
+.section-title-wrapper {
+  padding: 8px 0 16px;  /* ← padding réduit (était 40px 0 20px) */
+  background: #FFF8F2;
+}
+
+.section-title {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(1.4rem, 2.5vw, 1.8rem);  /* ← légèrement réduit */
+  font-weight: 600;
+  color: #2B2725;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+/* ─── Grille des cartes ──────────────────────────────────────────────────── */
+.circle-grid-section {
+  padding: 0 0 20px;  /* ← padding réduit (était 32px) */
+  background: #FFF8F2;
+}
+
+.circle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+/* ─── CTA et liens ───────────────────────────────────────────────────────── */
+.circle-grid-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 0 0;  /* ← padding réduit (était 32px) */
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #FFFFFF;
+  background: #FF6B5A;
+  padding: 14px 40px;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: background 0.18s ease;
+  display: inline-block;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #F45542;
+}
+
+.link-see-all {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: #FF6B5A;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 107, 90, 0.3);
+  padding-bottom: 2px;
+}
+
+.link-see-all:hover {
+  color: #F45542;
+}
+
+/* ─── Espace entre CitiesMarquee et Footer ─────────────────────────────── */
+.spacer {
+  height: 30px;  /* ← réduit (était 60px) */
+  background: transparent;
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 820px) {
+  .home-main {
+    padding: 12px 5% 0;  /* ← réduit */
+  }
+
+  .hero-section {
+    padding: 20px 0 6px;  /* ← réduit */
+  }
+
+  .hero-image {
+    max-width: 100%;
+  }
+
+  .section-title-wrapper {
+    padding: 4px 0 12px;  /* ← réduit */
+  }
+
+  .circle-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .circle-grid-actions {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    gap: 12px;
+    padding: 12px 0 0;
+  }
+
+  .btn-primary {
+    text-align: center;
+    padding: 14px 20px;
+  }
+
+  .link-see-all {
+    text-align: center;
+  }
+
+  .spacer {
+    height: 20px;  /* ← réduit */
+  }
+}
+
+@media (max-width: 640px) {
+  .section-title {
+    font-size: 1.2rem;
+  }
+
+  .spacer {
+    height: 16px;  /* ← réduit */
+  }
+}
