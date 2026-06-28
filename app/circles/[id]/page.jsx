@@ -1,279 +1,836 @@
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  deleteDoc,
-  limit,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
-} from 'firebase/firestore'
+'use client'
 
-import { db } from './firebase'
-import { DEFAULT_CAPACITY, CAPACITY_MAX, CAPACITY_MIN } from './circles'
-import { getUserProfile, getDisplayName } from './users'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import Navbar from '@/components/Navbar'
+import { getCurrentUser, signInWithGoogle } from '@/lib/auth'
+import { getCircleType } from '@/lib/circles'
+import { getCircle, getCircleMembers, joinCircle, sendMessage, subscribeMessages, toggleMessageLike, deleteMessage } from '@/lib/circleService'
+import { getDisplayName } from '@/lib/users'
 
-// ─── listOpenCircles ───────────────────────────────────────────────────────
-export async function listOpenCircles(max = 24) {
-  const q = query(
-    collection(db, 'circles'),
-    orderBy('created_at', 'desc'),
-    limit(max)
-  )
+const MSG_MAX = 180
 
-  const snap = await getDocs(q)
-
-  return snap.docs.map((d) => ({
-    id: d.id,
-    ...d.data(),
-  }))
+function safe(value) {
+  return typeof value === 'string' ? value : value == null ? '' : String(value)
 }
 
-// ─── getCircle ────────────────────────────────────────────────────────────
-export async function getCircle(circleId) {
-  if (!circleId) return null
-
-  const snap = await getDoc(doc(db, 'circles', circleId))
-
-  return snap.exists()
-    ? { id: snap.id, ...snap.data() }
-    : null
+function memberLabel(m) {
+  if (!m) return 'Ronda member'
+  return m.username || m.name || m.displayName || 'Ronda member'
 }
 
-// ─── getUserCircles ──────────────────────────────────────────────────────
-export async function getUserCircles(uid) {
-  if (!uid) return []
+function timeAgo(input) {
+  if (!input) return ''
+  const date = input instanceof Date ? input : new Date(input)
+  if (Number.isNaN(date.getTime())) return ''
+  const diffMs = Date.now() - date.getTime()
+  const diffMin = Math.floor(diffMs / 60000)
+  if (diffMin < 1) return 'just now'
+  if (diffMin < 60) return `${diffMin}m ago`
+  const diffH = Math.floor(diffMin / 60)
+  if (diffH < 24) return `${diffH}h ago`
+  const diffD = Math.floor(diffH / 24)
+  if (diffD === 1) return 'yesterday'
+  if (diffD < 7) return `${diffD}d ago`
+  return date.toLocaleDateString()
+}
 
-  const userCirclesRef = collection(db, 'users', uid, 'circles')
-  const snapshot = await getDocs(userCirclesRef)
+export default function CirclePage() {
+  const { id } = useParams()
+  const [circle, setCircle] = useState(null)
+  const [circleLoading, setCircleLoading] = useState(true)
+  const [members, setMembers] = useState([])
+  const [membersLoading, setMembersLoading] = useState(true)
+  const [creatorName, setCreatorName] = useState(null)
+  const [messages, setMessages] = useState([])
+  const [text, setText] = useState('')
+  const [replyTo, setReplyTo] = useState(null)
+  const [error, setError] = useState('')
+  const [joined, setJoined] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [shared, setShared] = useState(false)
 
-  if (snapshot.empty) return []
+  const currentUid = getCurrentUser()?.uid
 
-  const circles = []
-  for (const docSnap of snapshot.docs) {
-    const data = docSnap.data()
-    const circleId = docSnap.id
-    const circle = await getCircle(circleId)
-    if (circle) {
-      circles.push({
-        ...circle,
-        joined_at: data.joined_at,
-        role: data.role,
+  // ─── Circle ───────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!id) return
+    setCircleLoading(true)
+    getCircle(id)
+      .then(setCircle)
+      .catch(() => setCircle(null))
+      .finally(() => setCircleLoading(false))
+  }, [id])
+
+  // ─── Membres + créateur ──────────────────────────────────────────────
+  useEffect(() => {
+    if (!id) return
+    setMembersLoading(true)
+    getCircleMembers(id)
+      .then((list) => {
+        setMembers(Array.isArray(list) ? list : [])
       })
+      .catch(() => setMembers([]))
+      .finally(() => setMembersLoading(false))
+  }, [id])
+
+  useEffect(() => {
+    if (!circle?.created_by) return
+    getDisplayName(circle.created_by)
+      .then(setCreatorName)
+      .catch(() => setCreatorName(null))
+  }, [circle?.created_by])
+
+  // ─── Messages ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!id) return
+    return subscribeMessages(id, setMessages)
+  }, [id])
+
+  useEffect(() => {
+    const user = getCurrentUser()
+    if (!user || !members.length) {
+      setJoined(false)
+      return
+    }
+    setJoined(members.some((m) => m.uid === user.uid))
+  }, [members])
+
+  async function handleJoin() {
+    setError('')
+    try {
+      let user = getCurrentUser()
+      if (!user) user = await signInWithGoogle()
+      await joinCircle(id, user)
+      const refreshed = await getCircleMembers(id)
+      setMembers(Array.isArray(refreshed) ? refreshed : [])
+      setJoined(true)
+    } catch (err) {
+      setError(err?.message || 'Unable to join')
     }
   }
 
-  return circles.sort((a, b) => {
-    const ta = a.joined_at?.toDate?.() || new Date(0)
-    const tb = b.joined_at?.toDate?.() || new Date(0)
-    return tb - ta
-  })
-}
+  async function handleSend(e) {
+    e.preventDefault()
+    setError('')
 
-// ─── createCircle ─────────────────────────────────────────────────────────
-export async function createCircle(payload, user) {
-  if (!user?.uid) throw new Error('Sign in required')
+    const cleanText = safe(text).trim().slice(0, MSG_MAX)
+    if (!cleanText) return
 
-  const capacity = Math.min(
-    CAPACITY_MAX,
-    Math.max(CAPACITY_MIN, Number(payload.capacity || DEFAULT_CAPACITY))
-  )
+    const user = getCurrentUser()
+    if (!user) {
+      try {
+        await signInWithGoogle()
+      } catch (err) {
+        setError(err?.message || 'Sign-in required to post')
+        return
+      }
+    }
 
-  const city = (payload.city || '').trim()
+    const currentUser = getCurrentUser()
+    const member = members.find((m) => m.uid === currentUser?.uid)
+    const authorName = memberLabel(member) !== 'Ronda member'
+      ? memberLabel(member)
+      : currentUser?.username || currentUser?.displayName || 'Ronda member'
 
-  const displayName = await getDisplayName(user.uid)
-
-  const data = {
-    title: payload.title.trim(),
-    description: (payload.description || '').trim(),
-    type: payload.type,
-    city,
-    is_remote: !city,
-    capacity,
-    members_count: 1,
-    status: 'open',
-    created_by: user.uid,
-    created_by_name: displayName,
-    created_at: serverTimestamp(),
-    updated_at: serverTimestamp(),
-  }
-
-  const ref = await addDoc(collection(db, 'circles'), data)
-
-  await setDoc(doc(db, 'circles', ref.id, 'members', user.uid), {
-    user_id: user.uid,
-    name: displayName,
-    photo_url: user.photoURL || '',
-    role: 'owner',
-    joined_at: serverTimestamp(),
-  })
-
-  await setDoc(doc(db, 'users', user.uid, 'circles', ref.id), {
-    circle_id: ref.id,
-    role: 'owner',
-    joined_at: serverTimestamp(),
-  })
-
-  return ref.id
-}
-
-// ─── joinCircle ───────────────────────────────────────────────────────────
-export async function joinCircle(circleId, user) {
-  if (!user?.uid || !circleId) throw new Error('Sign in required')
-
-  const circle = await getCircle(circleId)
-  if (!circle) throw new Error('Circle not found')
-
-  const memberRef = doc(db, 'circles', circleId, 'members', user.uid)
-  const memberSnap = await getDoc(memberRef)
-
-  if (memberSnap.exists()) {
-    return
-  }
-
-  const displayName = await getDisplayName(user.uid)
-
-  await setDoc(memberRef, {
-    user_id: user.uid,
-    name: displayName,
-    photo_url: user.photoURL || '',
-    role: 'member',
-    joined_at: serverTimestamp(),
-  })
-
-  await setDoc(doc(db, 'users', user.uid, 'circles', circleId), {
-    circle_id: circleId,
-    role: 'member',
-    joined_at: serverTimestamp(),
-  })
-
-  await updateDoc(doc(db, 'circles', circleId), {
-    members_count: Math.min(
-      Number(circle.members_count || 0) + 1,
-      Number(circle.capacity || DEFAULT_CAPACITY)
-    ),
-    updated_at: serverTimestamp(),
-  })
-}
-
-// ─── getCircleMembers ─────────────────────────────────────────────────────
-export async function getCircleMembers(circleId) {
-  if (!circleId) return []
-
-  const membersRef = collection(db, 'circles', circleId, 'members')
-  const snapshot = await getDocs(membersRef)
-
-  if (snapshot.empty) return []
-
-  const members = []
-  for (const docSnap of snapshot.docs) {
-    const data = docSnap.data()
-    const userId = data.user_id
-    if (!userId) continue
-
-    const profile = await getUserProfile(userId)
-    const displayName = await getDisplayName(userId)
-
-    if (profile) {
-      members.push({
-        uid: userId,
-        name: displayName,
-        photo_url: profile.photo_url || data.photo_url || '',
-        role: data.role || 'member',
-        joined_at: data.joined_at,
+    setSending(true)
+    try {
+      await sendMessage(id, {
+        text: cleanText,
+        author_id: currentUser.uid,
+        author_name: authorName,
+        reply_to_message: replyTo?.messageId || null,
+        reply_to_author: replyTo?.authorName || null,
       })
-    } else {
-      members.push({
-        uid: userId,
-        name: data.name || displayName || 'Anonymous',
-        photo_url: data.photo_url || '',
-        role: data.role || 'member',
-        joined_at: data.joined_at,
-      })
+
+      setText('')
+      setReplyTo(null)
+    } catch (err) {
+      setError(err?.message || 'Unable to send')
+    } finally {
+      setSending(false)
     }
   }
 
-  return members.sort((a, b) => {
-    const ta = a.joined_at?.toDate?.() || new Date(0)
-    const tb = b.joined_at?.toDate?.() || new Date(0)
+  function handleReply(messageId, authorName) {
+    setReplyTo({ messageId, authorName })
+    document.querySelector('.post-box textarea')?.focus()
+  }
+
+  function cancelReply() {
+    setReplyTo(null)
+  }
+
+  async function handleLike(m) {
+    const user = getCurrentUser()
+    if (!user) {
+      try {
+        await signInWithGoogle()
+      } catch {
+        return
+      }
+    }
+    const uid = getCurrentUser()?.uid
+    if (!uid) return
+
+    const alreadyLiked = Array.isArray(m.liked_by) && m.liked_by.includes(uid)
+
+    setMessages((prev) =>
+      prev.map((msg) => {
+        if (msg.id !== m.id) return msg
+        const likedBy = Array.isArray(msg.liked_by) ? msg.liked_by : []
+        return {
+          ...msg,
+          liked_by: alreadyLiked ? likedBy.filter((u) => u !== uid) : [...likedBy, uid],
+        }
+      })
+    )
+
+    try {
+      await toggleMessageLike(id, m.id, uid)
+    } catch (err) {
+      setMessages((prev) =>
+        prev.map((msg) => (msg.id === m.id ? m : msg))
+      )
+      setError(err?.message || 'Unable to like')
+    }
+  }
+
+  async function handleDelete(messageId) {
+    if (typeof window !== 'undefined' && !window.confirm('Delete this message?')) return
+
+    const previous = messages
+    setMessages((prev) => prev.filter((msg) => msg.id !== messageId))
+
+    try {
+      await deleteMessage(id, messageId)
+    } catch (err) {
+      setMessages(previous)
+      setError(err?.message || 'Unable to delete')
+    }
+  }
+
+  async function handleShare() {
+    const url = typeof window !== 'undefined' ? window.location.href : ''
+    const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)
+
+    try {
+      if (isMobile && navigator.share) {
+        await navigator.share({ title: circle?.title || 'Ronda Circle', url })
+        return
+      }
+      await navigator.clipboard.writeText(url)
+      setShared(true)
+      setTimeout(() => setShared(false), 2000)
+    } catch (_) {
+      try {
+        await navigator.clipboard.writeText(url)
+        setShared(true)
+        setTimeout(() => setShared(false), 2000)
+      } catch (_) {}
+    }
+  }
+
+  if (circleLoading) {
+    return (
+      <>
+        <Navbar />
+        <main className="page-loading"><span>Loading circle...</span></main>
+      </>
+    )
+  }
+
+  if (!circle) {
+    return (
+      <>
+        <Navbar />
+        <main className="page-loading"><span>Circle not found.</span></main>
+      </>
+    )
+  }
+
+  const type = getCircleType(circle.type)
+  const capacity = Number(circle.capacity || 12)
+
+  const creatorMember = members.find((m) => m.uid === circle.created_by)
+  const displayCreator =
+    creatorMember?.username ||
+    creatorMember?.name ||
+    creatorMember?.displayName ||
+    creatorName ||
+    'Unknown'
+
+  const visibleMembers = members.slice(0, 8)
+  const extraMembersCount = Math.max(0, members.length - visibleMembers.length)
+
+  const orderedMessages = [...messages].sort((a, b) => {
+    const ta = new Date(a.created_at || a.timestamp || 0).getTime()
+    const tb = new Date(b.created_at || b.timestamp || 0).getTime()
     return ta - tb
   })
-}
 
-// ─── subscribeMessages ────────────────────────────────────────────────────
-export function subscribeMessages(circleId, callback) {
-  const q = query(
-    collection(db, 'circles', circleId, 'messages'),
-    orderBy('created_at', 'asc'),
-    limit(100)
+  return (
+    <>
+      <Navbar />
+      <main className="page">
+        <div className="container">
+          <div className="header">
+            <div className="header-left">
+              <h1 className="circle-title">{circle.title || 'Untitled circle'}</h1>
+              <p className="header-meta">
+                {type?.label || 'Circle'}
+                {circle.city ? ` · ⚲ ${circle.city}` : ''}
+              </p>
+              <p className="created-by">Created by {displayCreator}</p>
+            </div>
+            {!joined ? (
+              <button onClick={handleJoin} className="btn-join">Join</button>
+            ) : (
+              <span className="badge-joined">Joined</span>
+            )}
+          </div>
+
+          <div className="members-bar">
+            <div className="members-list">
+              {membersLoading ? (
+                <span className="members-empty">Loading members…</span>
+              ) : members.length === 0 ? (
+                <span className="members-empty">No members yet</span>
+              ) : (
+                <span className="members-text">
+                  <span className="members-label">Members: </span>
+                  {visibleMembers.map(memberLabel).join(' • ')}
+                  {extraMembersCount > 0 ? ` • +${extraMembersCount}` : ''}
+                </span>
+              )}
+            </div>
+            <span className="members-count">{members.length}/{capacity} members</span>
+          </div>
+
+          <p className="be-respectful">Be respectful!</p>
+
+          <form className="post-box" onSubmit={handleSend}>
+            {replyTo && (
+              <div className="reply-indicator">
+                <span>Replying to {replyTo.authorName}</span>
+                <button type="button" onClick={cancelReply}>✕</button>
+              </div>
+            )}
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Message here (180 characters max)"
+              maxLength={MSG_MAX}
+              rows={2}
+            />
+            <div className="post-actions">
+              <span className="counter">{MSG_MAX - safe(text).length} left</span>
+              <button type="submit" className="btn-post" disabled={sending}>
+                {sending ? '…' : 'Post'}
+              </button>
+            </div>
+          </form>
+
+          {error && <p className="error">{error}</p>}
+
+          <div className="messages">
+            {orderedMessages.length === 0 && (
+              <div className="message-empty">
+                <span>No messages yet. Start the conversation.</span>
+              </div>
+            )}
+
+            {orderedMessages.map((m) => {
+              const replyTarget = m.reply_to_author
+              const when = timeAgo(m.created_at || m.timestamp)
+              const isOwnMessage = m.author_id === currentUid
+              const likedBy = Array.isArray(m.liked_by) ? m.liked_by : []
+              const isLiked = currentUid ? likedBy.includes(currentUid) : false
+              return (
+                <div className="message" key={m.id}>
+                  {replyTarget && (
+                    <p className="replying-to">Replying to {replyTarget}</p>
+                  )}
+                  <div className="message-head">
+                    <span className="author">{safe(m.author_name)}</span>
+                    {when && <span className="message-time">{when}</span>}
+                  </div>
+                  <p className="message-text">{safe(m.text)}</p>
+                  <div className="message-actions">
+                    <button
+                      className={`like-btn${isLiked ? ' liked' : ''}`}
+                      onClick={() => handleLike(m)}
+                      aria-label="Like"
+                    >
+                      {isLiked ? '♥' : '♡'}
+                      {likedBy.length > 0 && <span className="like-count">{likedBy.length}</span>}
+                    </button>
+                    {isOwnMessage ? (
+                      <button
+                        className="delete-btn"
+                        onClick={() => handleDelete(m.id)}
+                      >
+                        Delete
+                      </button>
+                    ) : (
+                      <button
+                        className="reply-btn"
+                        onClick={() => handleReply(m.id, safe(m.author_name))}
+                      >
+                        Reply
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="bottom">
+            <Link href="/" className="bottom-link">← Back home</Link>
+            <button onClick={handleShare} className="bottom-link share-link">
+              Share group{shared ? ' — copied!' : ''}
+            </button>
+            <Link href="/terms" className="bottom-link">Terms</Link>
+          </div>
+        </div>
+
+        <style jsx>{`
+          .page {
+            min-height: 100vh;
+            background: #fff8f2;
+            padding: calc(clamp(58px, 7vw, 70px) + 18px) 16px 28px;
+            display: flex;
+            justify-content: center;
+            font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+            color: #1c1917;
+          }
+
+          .page-loading {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff8f2;
+            color: #9a918b;
+            padding-top: clamp(58px, 7vw, 70px);
+          }
+
+          .container {
+            max-width: 560px;
+            width: 100%;
+            background: #ffffff;
+            border: 1.5px solid #e8e0d8;
+            border-radius: 18px;
+            padding: 0 18px 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.02);
+          }
+
+          .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 18px 0 12px;
+            border-bottom: 1px solid #ede8e2;
+            gap: 12px;
+          }
+
+          .header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+          }
+
+          .circle-title {
+            font-size: 1.35rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: #1c1917;
+            margin: 0;
+          }
+
+          .header-meta {
+            font-size: 0.85rem;
+            color: #706965;
+            margin: 0;
+          }
+
+          .created-by {
+            font-size: 0.8rem;
+            color: #9a918b;
+            margin: 2px 0 0;
+          }
+
+          .btn-join {
+            background: #ff6b5a;
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 8px 24px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex-shrink: 0;
+          }
+
+          .btn-join:hover {
+            background: #f45542;
+          }
+
+          .badge-joined {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #065f46;
+            background: #d1fae5;
+            padding: 6px 18px;
+            border-radius: 999px;
+            flex-shrink: 0;
+          }
+
+          .members-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #ede8e2;
+            flex-wrap: wrap;
+          }
+
+          .members-list {
+            flex: 1;
+            min-width: 0;
+          }
+
+          .members-text {
+            font-size: 0.85rem;
+            color: #1c1917;
+            line-height: 1.4;
+          }
+
+          .members-label {
+            color: #9a918b;
+          }
+
+          .members-empty {
+            font-size: 0.85rem;
+            color: #b5ada6;
+          }
+
+          .members-count {
+            font-size: 0.8rem;
+            color: #706965;
+            white-space: nowrap;
+          }
+
+          .be-respectful {
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #706965;
+            padding: 8px 0 2px;
+            margin: 0;
+          }
+
+          .post-box {
+            margin: 8px 0 12px;
+            padding: 6px 0;
+            border: none;
+            border-bottom: 1.5px dashed rgba(255, 107, 90, 0.3);
+            border-radius: 0;
+            background: transparent;
+          }
+
+          .reply-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 12px;
+            background: #f5f0eb;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+            color: #706965;
+          }
+
+          .reply-indicator button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #706965;
+            padding: 0 4px;
+          }
+
+          .post-box textarea {
+            width: 100%;
+            border: none;
+            outline: none;
+            resize: none;
+            font-family: inherit;
+            font-size: 0.92rem;
+            color: #1c1917;
+            background: transparent;
+            min-height: 32px;
+            max-height: 90px;
+            padding: 6px 0;
+          }
+
+          .post-box textarea::placeholder {
+            color: #b5ada6;
+          }
+
+          .post-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 6px;
+          }
+
+          .counter {
+            font-size: 0.75rem;
+            color: #b5ada6;
+          }
+
+          .btn-post {
+            background: #ff6b5a;
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 6px 28px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+          }
+
+          .btn-post:hover {
+            background: #f45542;
+          }
+
+          .btn-post:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+
+          .error {
+            color: #dc2626;
+            font-size: 0.85rem;
+            padding: 4px 0 4px;
+          }
+
+          .messages {
+            flex: 1;
+            padding: 2px 0 8px;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .message-empty {
+            text-align: center;
+            color: #b5ada6;
+            font-size: 0.9rem;
+            padding: 32px 0;
+          }
+
+          .message {
+            padding: 8px 0;
+            margin: 0;
+            border: none;
+            border-bottom: 1px solid #eee3dc;
+            border-radius: 0;
+            background: transparent;
+          }
+
+          .message:last-child {
+            border-bottom: none;
+          }
+
+          .replying-to {
+            margin: 0 0 2px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #ff6b5a;
+          }
+
+          .message-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 2px;
+            gap: 8px;
+          }
+
+          .author {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1c1917;
+          }
+
+          .message-time {
+            font-size: 0.7rem;
+            color: #b5ada6;
+            white-space: nowrap;
+          }
+
+          .message-text {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.28;
+            color: #1c1917;
+            white-space: pre-wrap;
+            word-break: break-word;
+          }
+
+          .message-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 2px;
+          }
+
+          .like-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 0.82rem;
+            color: #b5ada6;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            margin-right: auto;
+            transition: color 0.15s, transform 0.1s;
+          }
+
+          .like-btn:active {
+            transform: scale(1.15);
+          }
+
+          .like-btn.liked {
+            color: #ff6b5a;
+          }
+
+          .like-count {
+            font-size: 0.7rem;
+            color: #9a918b;
+          }
+
+          .reply-btn {
+            font-size: 0.72rem;
+            color: #9a918b;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            transition: color 0.2s;
+          }
+
+          .reply-btn:hover {
+            color: #ff6b5a;
+          }
+
+          .delete-btn {
+            font-size: 0.72rem;
+            color: #b5ada6;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            transition: color 0.2s;
+          }
+
+          .delete-btn:hover {
+            color: #dc2626;
+          }
+
+          .bottom {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0 18px;
+            border-top: 1px solid #ede8e2;
+            gap: 12px;
+            flex-wrap: wrap;
+          }
+
+          .bottom-link {
+            color: #1c1917;
+            background: transparent;
+            border: none;
+            text-decoration: none;
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 2px 0;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+          }
+
+          .bottom-link:hover {
+            border-color: #1c1917;
+          }
+
+          @media (max-width: 640px) {
+            .page {
+              padding: calc(clamp(58px, 7vw, 70px) + 10px) 10px 18px;
+            }
+
+            .container {
+              padding: 0 12px 0;
+              border-radius: 14px;
+            }
+
+            .header {
+              padding: 14px 0 10px;
+            }
+
+            .circle-title {
+              font-size: 1.15rem;
+            }
+
+            .btn-join {
+              padding: 6px 18px;
+              font-size: 0.8rem;
+            }
+
+            .post-box textarea {
+              font-size: 0.88rem;
+              min-height: 30px;
+            }
+
+            .message-text {
+              font-size: 0.86rem;
+            }
+
+            .bottom {
+              flex-direction: column;
+              align-items: flex-start;
+              gap: 8px;
+              padding: 12px 0 16px;
+            }
+          }
+
+          @media (max-width: 400px) {
+            .container {
+              padding: 0 10px 0;
+            }
+
+            .circle-title {
+              font-size: 1.05rem;
+            }
+
+            .header {
+              flex-wrap: wrap;
+              gap: 6px;
+            }
+          }
+        `}</style>
+      </main>
+    </>
   )
-
-  return onSnapshot(q, (snap) => {
-    callback(
-      snap.docs.map((d) => ({
-        id: d.id,
-        ...d.data(),
-      }))
-    )
-  })
-}
-
-// ─── sendMessage ──────────────────────────────────────────────────────────
-export async function sendMessage(circleId, payload) {
-  if (!circleId) throw new Error('Missing circle id')
-  if (!payload?.text?.trim()) throw new Error('Message text is required')
-
-  const messageData = {
-    text: payload.text.trim().slice(0, 280),
-    author_id: payload.author_id || null,
-    author_name: payload.author_name || 'Anonymous',
-    author_photo: payload.photo_url || '',
-    reply_to_message: payload.reply_to_message || null,
-    reply_to_author: payload.reply_to_author || null,
-    created_at: serverTimestamp(),
-  }
-
-  await addDoc(collection(db, 'circles', circleId, 'messages'), messageData)
-}
-
-// ─── toggleMessageLike ────────────────────────────────────────────────────
-export async function toggleMessageLike(circleId, messageId, userId) {
-  if (!circleId || !messageId || !userId) {
-    throw new Error('Missing required parameters')
-  }
-
-  const messageRef = doc(db, 'circles', circleId, 'messages', messageId)
-  const messageSnap = await getDoc(messageRef)
-
-  if (!messageSnap.exists()) {
-    throw new Error('Message not found')
-  }
-
-  const data = messageSnap.data()
-  const likedBy = Array.isArray(data.liked_by) ? data.liked_by : []
-  const isLiked = likedBy.includes(userId)
-
-  if (isLiked) {
-    await updateDoc(messageRef, {
-      liked_by: likedBy.filter((id) => id !== userId),
-    })
-  } else {
-    await updateDoc(messageRef, {
-      liked_by: [...likedBy, userId],
-    })
-  }
-}
-
-// ─── deleteMessage ────────────────────────────────────────────────────────
-export async function deleteMessage(circleId, messageId) {
-  if (!circleId || !messageId) {
-    throw new Error('Missing required parameters')
-  }
-
-  await deleteDoc(doc(db, 'circles', circleId, 'messages', messageId))
 }
