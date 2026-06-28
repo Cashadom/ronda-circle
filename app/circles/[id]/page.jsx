@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import { getCurrentUser, signInWithGoogle } from '@/lib/auth'
 import { getCircleType } from '@/lib/circles'
-import { getCircle, getCircleMembers, joinCircle, sendMessage, subscribeMessages, toggleMessageLike, deleteMessage } from '@/lib/circleService'
+import { getCircle, getCircleMembers, joinCircle, leaveCircle, sendMessage, subscribeMessages, toggleMessageLike, deleteMessage } from '@/lib/circleService'
 import { getDisplayName } from '@/lib/users'
 
 const MSG_MAX = 180
@@ -108,6 +108,27 @@ export default function CirclePage() {
       setJoined(true)
     } catch (err) {
       setError(err?.message || 'Unable to join')
+    }
+  }
+
+  async function handleLeave() {
+    setError('')
+    if (!confirm('Are you sure you want to leave this circle?')) return
+
+    try {
+      const user = getCurrentUser()
+      if (!user) {
+        await signInWithGoogle()
+        return
+      }
+
+      await leaveCircle(id, user.uid)
+      
+      const refreshed = await getCircleMembers(id)
+      setMembers(Array.isArray(refreshed) ? refreshed : [])
+      setJoined(false)
+    } catch (err) {
+      setError(err?.message || 'Unable to leave circle')
     }
   }
 
@@ -287,7 +308,10 @@ export default function CirclePage() {
             {!joined ? (
               <button onClick={handleJoin} className="btn-join">Join</button>
             ) : (
-              <span className="badge-joined">Joined</span>
+              <div className="joined-actions">
+                <span className="badge-joined">Joined</span>
+                <button onClick={handleLeave} className="btn-leave">Leave</button>
+              </div>
             )}
           </div>
 
@@ -481,6 +505,12 @@ export default function CirclePage() {
             background: #f45542;
           }
 
+          .joined-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+
           .badge-joined {
             font-size: 0.85rem;
             font-weight: 500;
@@ -489,6 +519,24 @@ export default function CirclePage() {
             padding: 6px 18px;
             border-radius: 999px;
             flex-shrink: 0;
+          }
+
+          .btn-leave {
+            background: transparent;
+            color: #9A918B;
+            border: 1px solid #E9DDD4;
+            border-radius: 999px;
+            padding: 6px 16px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+          }
+
+          .btn-leave:hover {
+            background: #FEE2E2;
+            border-color: #DC2626;
+            color: #DC2626;
           }
 
           .members-bar {
