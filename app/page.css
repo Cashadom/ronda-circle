@@ -22,12 +22,7 @@
 
 /* ─── Hero avec fond beige ──────────────────────────────────────────────── */
 .hero-section {
-  background: #FFF8F2;
-  padding: 48px 0 16px;
-  text-align: center;
-  margin-bottom: 0;
-  width: 100%;
-  overflow: hidden;
+  padding: 60px 0 16px;
 }
 
 .hero-image {
@@ -35,7 +30,15 @@
   width: 100%;
   height: auto;
   display: block;
-  margin: 0 auto;
+  margin: 12px auto 0;
+}
+
+.hero-image {
+  max-width: 480px;
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 36px auto 0;
 }
 
 /* ─── Titre "Most popular circles" juste avant les cartes ──────────────── */

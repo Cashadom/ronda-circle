@@ -1,7 +1,7 @@
 .cities-marquee {
   width: 100%;
   max-width: 1100px;
-  margin: 48px auto 0;
+  margin: 8px auto 18px;
   overflow: hidden;
   text-align: center;
   box-sizing: border-box;
@@ -30,7 +30,7 @@
   background: #FFFFFF;
   border: 1px solid #E9DDD4;
   border-radius: 999px;
-  padding: 8px 18px;
+  padding: 4px 18px;
   font-family: Inter, sans-serif;
   font-size: 0.85rem;
   color: #2B2725;
@@ -50,7 +50,7 @@
   .cities-marquee {
     width: 100%;
     max-width: 100%;
-    margin: 24px auto 18px;
+    margin: 6px auto 18px;
     overflow: hidden;
   }
 
