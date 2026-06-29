@@ -2,7 +2,7 @@ import './globals.css'
 import Script from 'next/script'
 
 export const metadata = {
-  title: 'Ronda Circle',
+  title: 'Ronda Club',
   description: 'Join small public circles in your city or remotely.',
 }
 
