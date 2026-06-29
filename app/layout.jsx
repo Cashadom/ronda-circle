@@ -9,8 +9,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <head>
-        {/* ─── Google Tag Manager (dans <head>) ─── */}
+      <body>
         <Script
           id="gtm-script"
           strategy="afterInteractive"
@@ -24,9 +23,7 @@ export default function RootLayout({ children }) {
             `,
           }}
         />
-      </head>
-      <body>
-        {/* ─── GTM noscript (juste après <body>) ─── */}
+
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-NNGV2LTP"
@@ -35,6 +32,7 @@ export default function RootLayout({ children }) {
             style={{ display: 'none', visibility: 'hidden' }}
           />
         </noscript>
+
         {children}
       </body>
     </html>
