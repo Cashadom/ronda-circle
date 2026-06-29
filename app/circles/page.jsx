@@ -115,7 +115,7 @@ export default function CirclesPage() {
         .page {
           min-height: 100vh;
           background: #FFF8F2;
-          padding: calc(clamp(62px, 8vw, 76px) + 56px) 5% 56px;
+          padding: calc(clamp(62px, 8vw, 76px) + 44px) 5% 44px;
           display: flex;
           justify-content: center;
           font-family: 'Inter', sans-serif;
@@ -131,49 +131,45 @@ export default function CirclesPage() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 32px;
+          margin-bottom: 28px;
           flex-wrap: wrap;
-          gap: 18px;
+          gap: 16px;
         }
 
         .page-title {
-          font-size: clamp(2rem, 4vw, 3.4rem);
+          font-size: 1.6rem;
           font-weight: 700;
           color: #2B2725;
           margin: 0;
-          letter-spacing: -0.04em;
-          line-height: 1.05;
+          letter-spacing: -0.02em;
+          line-height: 1.2;
         }
 
-        /* ─── BOUTON CORAIL VISIBLE ─── */
         .btn-create {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          background: #FF6B5A !important;
-          color: #FFFFFF !important;
-          border: none !important;
-          border-radius: 999px !important;
-          padding: 14px 32px !important;
-          font-size: 0.95rem !important;
-          font-weight: 700 !important;
-          text-decoration: none !important;
-          box-shadow: 0 10px 28px rgba(255, 107, 90, 0.25) !important;
-          transition: background 0.2s ease, transform 0.15s ease !important;
-          cursor: pointer !important;
-          flex-shrink: 0 !important;
-          line-height: 1 !important;
-          letter-spacing: -0.01em !important;
+          background: #FF6B5A;
+          color: #FFFFFF;
+          border: none;
+          border-radius: 999px;
+          padding: 11px 26px;
+          font-size: 0.88rem;
+          font-weight: 600;
+          text-decoration: none;
+          transition: background 0.2s ease, transform 0.15s ease;
+          cursor: pointer;
+          flex-shrink: 0;
+          line-height: 1;
         }
 
         .btn-create:hover {
-          background: #F45542 !important;
-          transform: translateY(-2px) !important;
-          box-shadow: 0 14px 32px rgba(255, 107, 90, 0.32) !important;
+          background: #F45542;
+          transform: translateY(-1px);
         }
 
         .btn-create:active {
-          transform: translateY(0) !important;
+          transform: translateY(0);
         }
 
         .loading {
@@ -217,9 +213,8 @@ export default function CirclesPage() {
         .table-wrap {
           background: #FFFFFF;
           border: 1px solid #E9DDD4;
-          border-radius: 24px;
+          border-radius: 16px;
           overflow: hidden;
-          box-shadow: 0 18px 50px rgba(43, 39, 37, 0.05);
         }
 
         .circles-table {
@@ -229,20 +224,20 @@ export default function CirclesPage() {
 
         .circles-table th {
           text-align: left;
-          padding: 18px 20px;
-          font-size: 0.72rem;
-          font-weight: 700;
+          padding: 16px 18px;
+          font-size: 0.7rem;
+          font-weight: 600;
           text-transform: uppercase;
-          letter-spacing: 0.08em;
-          color: #8A817C;
-          background: #FFFDFB;
+          letter-spacing: 0.06em;
+          color: #9A918B;
+          background: transparent;
           border-bottom: 1px solid #E9DDD4;
         }
 
         .circles-table td {
-          padding: 18px 20px;
+          padding: 16px 18px;
           border-bottom: 1px solid #F0EBE6;
-          font-size: 0.92rem;
+          font-size: 0.9rem;
           vertical-align: middle;
         }
 
@@ -261,23 +256,23 @@ export default function CirclesPage() {
         .col-group {
           display: flex;
           align-items: center;
-          gap: 16px;
+          gap: 14px;
           min-width: 200px;
-          min-height: 80px;
+          min-height: 70px;
         }
 
         .point-icon {
-          width: 62px;
+          width: 56px;
           height: auto;
           flex-shrink: 0;
           display: block;
         }
 
         .group-link {
-          color: #1C1917;
+          color: #2B2725;
           text-decoration: none;
-          font-weight: 700;
-          font-size: 1rem;
+          font-weight: 600;
+          font-size: 0.95rem;
           transition: color 0.2s;
         }
 
@@ -289,10 +284,10 @@ export default function CirclesPage() {
           display: inline-block;
           background: #FFF0EB;
           color: #FF6B5A;
-          padding: 5px 12px;
+          padding: 4px 12px;
           border-radius: 999px;
-          font-size: 0.76rem;
-          font-weight: 700;
+          font-size: 0.75rem;
+          font-weight: 600;
         }
 
         .city {
@@ -303,7 +298,6 @@ export default function CirclesPage() {
         .members-count {
           font-size: 0.85rem;
           color: #2B2725;
-          font-weight: 500;
         }
 
         .btn-join {
@@ -312,9 +306,9 @@ export default function CirclesPage() {
           color: #fff;
           border: none;
           border-radius: 999px;
-          padding: 8px 20px;
-          font-size: 0.82rem;
-          font-weight: 700;
+          padding: 6px 18px;
+          font-size: 0.8rem;
+          font-weight: 600;
           text-decoration: none;
           transition: background 0.2s;
           cursor: pointer;
@@ -330,8 +324,8 @@ export default function CirclesPage() {
           color: #9A918B;
           border: none;
           border-radius: 999px;
-          padding: 8px 20px;
-          font-size: 0.82rem;
+          padding: 6px 18px;
+          font-size: 0.8rem;
           font-weight: 600;
           cursor: default;
           pointer-events: none;
@@ -339,11 +333,11 @@ export default function CirclesPage() {
 
         @media (max-width: 820px) {
           .page {
-            padding: calc(clamp(62px, 8vw, 76px) + 40px) 4% 40px;
+            padding: calc(clamp(62px, 8vw, 76px) + 28px) 4% 28px;
           }
 
           .page-title {
-            font-size: clamp(1.8rem, 4vw, 2.6rem);
+            font-size: 1.4rem;
           }
 
           .header {
@@ -351,39 +345,32 @@ export default function CirclesPage() {
             flex-direction: column;
           }
 
-          .btn-create {
-            padding: 12px 24px !important;
-            font-size: 0.85rem !important;
-          }
-
           .circles-table th,
           .circles-table td {
-            padding: 14px 14px;
+            padding: 12px 14px;
             font-size: 0.85rem;
           }
 
           .col-group {
-            min-height: 70px;
+            min-height: 56px;
             gap: 12px;
           }
 
           .point-icon {
-            width: 48px;
+            width: 42px;
           }
         }
 
         @media (max-width: 640px) {
           .page {
-            padding: calc(clamp(62px, 8vw, 76px) + 28px) 4% 28px;
+            padding: calc(clamp(62px, 8vw, 76px) + 20px) 4% 20px;
           }
 
           .page-title {
-            font-size: 1.6rem;
+            font-size: 1.25rem;
           }
 
           .btn-create {
-            padding: 10px 20px !important;
-            font-size: 0.8rem !important;
             width: 100%;
             justify-content: center;
           }
@@ -403,7 +390,7 @@ export default function CirclesPage() {
           .col-group {
             min-width: 120px;
             gap: 10px;
-            min-height: 56px;
+            min-height: 48px;
           }
 
           .point-icon {
@@ -424,11 +411,11 @@ export default function CirclesPage() {
 
         @media (max-width: 480px) {
           .page-title {
-            font-size: 1.4rem;
+            font-size: 1.15rem;
           }
 
           .col-group {
-            min-height: 48px;
+            min-height: 42px;
           }
 
           .point-icon {

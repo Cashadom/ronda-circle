@@ -428,7 +428,7 @@ export default function CirclePageClient() {
             display: flex;
             justify-content: center;
             font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-            color: #1c1917;
+            color: #f76504;
           }
 
           .page-loading {

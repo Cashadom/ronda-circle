@@ -14,10 +14,14 @@ export default function Home() {
   return (
     <>
       <Navbar />
+
       <main className="home">
         <section className="hero-section">
           <img src="/fond.png" alt="Ronda Club" className="hero-image" />
         </section>
+
+        {/* 👇 Ici */}
+        <CitiesMarquee />
 
         <div className="home-main">
           <div className="section-title-wrapper">
@@ -25,7 +29,6 @@ export default function Home() {
           </div>
 
           <CircleGrid />
-          <CitiesMarquee />
 
           <div className="spacer" />
         </div>
