@@ -1,9 +1,10 @@
-/* ─── Cities Marquee ──────────────────────────────────────────────────────── */
 .cities-marquee {
+  width: 100%;
   max-width: 1100px;
   margin: 48px auto 0;
   overflow: hidden;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .marquee-label {
@@ -19,11 +20,13 @@
 .marquee-track {
   display: flex;
   gap: 12px;
-  width: max-content;
+  width: fit-content;
   animation: marquee 24s linear infinite;
+  will-change: transform;
 }
 
 .marquee-city {
+  flex: 0 0 auto;
   background: #FFFFFF;
   border: 1px solid #E9DDD4;
   border-radius: 999px;
@@ -43,13 +46,27 @@
   }
 }
 
-/* ─── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .cities-marquee {
-    margin: 32px auto 0;
+    width: 100%;
+    max-width: 100%;
+    margin: 24px auto 18px;
+    overflow: hidden;
   }
+
+  .marquee-label {
+    font-size: 0.68rem;
+    margin-bottom: 10px;
+  }
+
+  .marquee-track {
+    gap: 8px;
+    animation-duration: 18s;
+  }
+
   .marquee-city {
-    font-size: 0.75rem;
-    padding: 6px 14px;
+    flex: 0 0 auto;
+    font-size: 0.72rem;
+    padding: 6px 12px;
   }
 }

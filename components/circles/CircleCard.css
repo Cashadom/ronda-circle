@@ -29,6 +29,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
+  min-width: 0;
 }
 
 .card-title {
@@ -37,6 +38,10 @@
   font-size: 1.05rem;
   color: #2B2725;
   line-height: 1.25;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .card-category {
@@ -49,6 +54,8 @@
   padding: 4px 14px;
   border-radius: 999px;
   white-space: nowrap;
+  max-width: 48%;
+  text-align: right;
 }
 
 /* ─── Ligne ville + membres ──────────────────────────────────── */
@@ -57,6 +64,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 14px;
+  min-width: 0;
 }
 
 .card-city {
@@ -64,6 +72,8 @@
   font-size: 0.88rem;
   color: #706965;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-members {
@@ -71,6 +81,7 @@
   font-size: 0.85rem;
   color: #9A918B;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ─── Description ────────────────────────────────────────────── */
@@ -91,6 +102,7 @@
   margin-top: 18px;
   padding-top: 16px;
   border-top: 1px solid #F0EBE6;
+  min-width: 0;
 }
 
 .card-creator {
@@ -98,6 +110,7 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .creator-avatar {
@@ -144,22 +157,106 @@
 }
 
 /* ─── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 820px) {
+  .circle-card {
+    padding: 20px 20px;
+  }
+}
+
 @media (max-width: 640px) {
   .circle-card {
-    padding: 20px 18px;
-    min-height: 180px;
+    padding: 18px 14px;
+    min-height: 160px;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
+
+  .card-row-top,
+  .card-row-meta,
+  .card-footer {
+    min-width: 0;
+  }
+
   .card-title {
     font-size: 0.95rem;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
-  .card-description,
+
+  .card-category {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    white-space: normal;
+    max-width: 48%;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .card-city {
+    font-size: 0.8rem;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+
+  .card-members {
+    font-size: 0.78rem;
+    white-space: normal;
+    flex-shrink: 0;
+  }
+
+  .card-description {
+    font-size: 0.82rem;
+  }
+
+  .creator-name {
+    font-size: 0.78rem;
+    white-space: normal;
+  }
+
+  .btn-join {
+    padding: 7px 16px;
+    font-size: 0.78rem;
+  }
+
+  .card-footer {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .card-creator {
+    min-width: 0;
+    max-width: 65%;
+  }
+}
+
+@media (max-width: 420px) {
+  .circle-card {
+    padding: 14px 12px;
+    min-height: 140px;
+  }
+
+  .card-title {
+    font-size: 0.88rem;
+  }
+
+  .card-category {
+    font-size: 0.65rem;
+    padding: 2px 8px;
+  }
+
   .card-city,
   .card-members,
+  .card-description,
   .creator-name {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
-  .card-category {
+
+  .btn-join {
+    padding: 5px 12px;
     font-size: 0.72rem;
-    padding: 3px 11px;
   }
 }
