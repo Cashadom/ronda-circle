@@ -35,17 +35,8 @@ function timeAgo(input) {
   if (diffD < 7) return `${diffD}d ago`
   return date.toLocaleDateString()
 }
-export async function generateMetadata({ params }) {
-  const { id } = await params
-  // Tu peux récupérer le circle pour avoir son vrai titre
-  // Pour l'instant, on met un titre générique
-  return {
-    title: `Circle | Ronda Club`,
-    description: 'Join this public circle on Ronda Club. Meet new people, chat, and connect.',
-  }
-}
 
-export default function CirclePage() {
+export default function CirclePageClient() {
   const { id } = useParams()
   const [circle, setCircle] = useState(null)
   const [circleLoading, setCircleLoading] = useState(true)
