@@ -524,7 +524,7 @@ export default function CirclePageClient() {
           <div className="messages">
             {orderedMessages.length === 0 && (
               <div className="message-empty">
-                <span>No messages yet. Start the conversation.</span>
+                <span>Sign in to see messages and post.</span>
               </div>
             )}
 
