@@ -8,6 +8,16 @@ import { getCurrentUser, signInWithGoogle } from '@/lib/auth'
 import { getCircleType } from '@/lib/circles'
 import { getCircle, getCircleMembers, joinCircle, leaveCircle, sendMessage, subscribeMessages, toggleMessageLike, deleteMessage } from '@/lib/circleService'
 import { getDisplayName } from '@/lib/users'
+import WeeklyMomentUpload from '@/components/weekly/WeeklyMomentUpload'
+import WeeklyMomentGrid from '@/components/weekly/WeeklyMomentGrid'
+import { 
+  getWeeklyMoments, 
+  uploadWeeklyMoment, 
+  toggleLike, 
+  deleteWeeklyMoment,
+  hasPostedThisWeek,
+  cleanExpiredMoments,
+} from '@/lib/weeklyMoments'
 
 const MSG_MAX = 180
 
@@ -51,7 +61,14 @@ export default function CirclePageClient() {
   const [sending, setSending] = useState(false)
   const [shared, setShared] = useState(false)
 
+  // ─── Weekly Moments States ──────────────────────────────────────────────
+  const [weeklyMoments, setWeeklyMoments] = useState([])
+  const [weeklyLoading, setWeeklyLoading] = useState(true)
+  const [hasPosted, setHasPosted] = useState(false)
+  const [uploading, setUploading] = useState(false)
+
   const currentUid = getCurrentUser()?.uid
+  const currentUser = getCurrentUser()
 
   // ─── Circle ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -96,6 +113,64 @@ export default function CirclePageClient() {
     }
     setJoined(members.some((m) => m.uid === user.uid))
   }, [members])
+
+  // ─── Weekly Moments ──────────────────────────────────────────────────────
+  const loadWeeklyMoments = async () => {
+    if (!id) return
+    setWeeklyLoading(true)
+    try {
+      await cleanExpiredMoments(id)
+      const data = await getWeeklyMoments(id)
+      setWeeklyMoments(data)
+      if (currentUser) {
+        const posted = await hasPostedThisWeek(id, currentUser.uid)
+        setHasPosted(posted)
+      }
+    } catch (err) {
+      console.error('Failed to load moments:', err)
+    } finally {
+      setWeeklyLoading(false)
+    }
+  }
+
+  const handleUpload = async (file) => {
+    if (!currentUser) return
+    setUploading(true)
+    try {
+      await uploadWeeklyMoment(id, currentUser, file)
+      await loadWeeklyMoments()
+      setHasPosted(true)
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleLike = async (momentId) => {
+    if (!currentUser) return
+    try {
+      await toggleLike(id, momentId, currentUser.uid)
+      await loadWeeklyMoments()
+    } catch (err) {
+      console.error('Failed to like:', err)
+    }
+  }
+
+  const handleDeleteMoment = async (momentId) => {
+    if (!currentUser) return
+    if (!confirm('Delete this moment?')) return
+    try {
+      await deleteWeeklyMoment(id, momentId, currentUser.uid)
+      await loadWeeklyMoments()
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
+  useEffect(() => {
+    loadWeeklyMoments()
+  }, [id, currentUser?.uid])
 
   async function handleJoin() {
     setError('')
@@ -333,6 +408,29 @@ export default function CirclePageClient() {
           </div>
 
           <p className="be-respectful">Be respectful!</p>
+
+          {/* ─── Weekly Moment ─── */}
+          <div className="weekly-moment">
+            <div className="weekly-moment-header">
+              <h3>Weekly Moment</h3>
+              <p className="weekly-moment-subtitle">One real photo per week. No feed, no pressure.</p>
+            </div>
+
+            {currentUser && !hasPosted && (
+              <WeeklyMomentUpload onUpload={handleUpload} uploading={uploading} />
+            )}
+            {currentUser && hasPosted && (
+              <p className="weekly-moment-posted">You already shared your weekly moment.</p>
+            )}
+
+            <WeeklyMomentGrid
+              moments={weeklyMoments}
+              loading={weeklyLoading}
+              currentUserId={currentUser?.uid}
+              onLike={handleLike}
+              onDelete={handleDeleteMoment}
+            />
+          </div>
 
           <form className="post-box" onSubmit={handleSend}>
             {replyTo && (
@@ -583,6 +681,41 @@ export default function CirclePageClient() {
             color: #706965;
             padding: 8px 0 2px;
             margin: 0;
+          }
+
+          /* ─── Weekly Moment ────────────────────────────────────────────────────── */
+          .weekly-moment {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #ede8e2;
+          }
+
+          .weekly-moment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+          }
+
+          .weekly-moment-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1c1917;
+            margin: 0;
+          }
+
+          .weekly-moment-subtitle {
+            font-size: 0.8rem;
+            color: #9a918b;
+            margin: 0;
+          }
+
+          .weekly-moment-posted {
+            color: #059669;
+            font-size: 0.85rem;
+            padding: 8px 0;
           }
 
           .post-box {

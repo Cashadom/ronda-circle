@@ -6,8 +6,27 @@ import { useParams } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import { getCurrentUser, signInWithGoogle } from '@/lib/auth'
 import { getCircleType } from '@/lib/circles'
-import { getCircle, getCircleMembers, joinCircle, leaveCircle, sendMessage, subscribeMessages, toggleMessageLike, deleteMessage } from '@/lib/circleService'
+import {
+  getCircle,
+  getCircleMembers,
+  joinCircle,
+  leaveCircle,
+  sendMessage,
+  subscribeMessages,
+  toggleMessageLike,
+  deleteMessage,
+} from '@/lib/circleService'
 import { getDisplayName } from '@/lib/users'
+import WeeklyMomentUpload from '@/components/weekly/WeeklyMomentUpload'
+import WeeklyMomentGrid from '@/components/weekly/WeeklyMomentGrid'
+import {
+  getWeeklyMoments,
+  uploadWeeklyMoment,
+  toggleLike,
+  deleteWeeklyMoment,
+  hasPostedThisWeek,
+  cleanExpiredMoments,
+} from '@/lib/weeklyMoments'
 
 const MSG_MAX = 180
 
@@ -24,25 +43,32 @@ function timeAgo(input) {
   if (!input) return ''
   const date = input instanceof Date ? input : new Date(input)
   if (Number.isNaN(date.getTime())) return ''
+
   const diffMs = Date.now() - date.getTime()
   const diffMin = Math.floor(diffMs / 60000)
+
   if (diffMin < 1) return 'just now'
   if (diffMin < 60) return `${diffMin}m ago`
+
   const diffH = Math.floor(diffMin / 60)
   if (diffH < 24) return `${diffH}h ago`
+
   const diffD = Math.floor(diffH / 24)
   if (diffD === 1) return 'yesterday'
   if (diffD < 7) return `${diffD}d ago`
+
   return date.toLocaleDateString()
 }
 
 export default function CirclePageClient() {
   const { id } = useParams()
+
   const [circle, setCircle] = useState(null)
   const [circleLoading, setCircleLoading] = useState(true)
   const [members, setMembers] = useState([])
   const [membersLoading, setMembersLoading] = useState(true)
   const [creatorName, setCreatorName] = useState(null)
+
   const [messages, setMessages] = useState([])
   const [text, setText] = useState('')
   const [replyTo, setReplyTo] = useState(null)
@@ -51,38 +77,44 @@ export default function CirclePageClient() {
   const [sending, setSending] = useState(false)
   const [shared, setShared] = useState(false)
 
-  const currentUid = getCurrentUser()?.uid
+  const [weeklyMoments, setWeeklyMoments] = useState([])
+  const [weeklyLoading, setWeeklyLoading] = useState(true)
+  const [hasPosted, setHasPosted] = useState(false)
+  const [uploading, setUploading] = useState(false)
 
-  // ─── Circle ───────────────────────────────────────────────────────────
+  const currentUser = getCurrentUser()
+  const currentUid = currentUser?.uid
+
   useEffect(() => {
     if (!id) return
+
     setCircleLoading(true)
+
     getCircle(id)
       .then(setCircle)
       .catch(() => setCircle(null))
       .finally(() => setCircleLoading(false))
   }, [id])
 
-  // ─── Membres + créateur ──────────────────────────────────────────────
   useEffect(() => {
     if (!id) return
+
     setMembersLoading(true)
+
     getCircleMembers(id)
-      .then((list) => {
-        setMembers(Array.isArray(list) ? list : [])
-      })
+      .then((list) => setMembers(Array.isArray(list) ? list : []))
       .catch(() => setMembers([]))
       .finally(() => setMembersLoading(false))
   }, [id])
 
   useEffect(() => {
     if (!circle?.created_by) return
+
     getDisplayName(circle.created_by)
       .then(setCreatorName)
       .catch(() => setCreatorName(null))
   }, [circle?.created_by])
 
-  // ─── Messages ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!id) return
     return subscribeMessages(id, setMessages)
@@ -90,19 +122,97 @@ export default function CirclePageClient() {
 
   useEffect(() => {
     const user = getCurrentUser()
+
     if (!user || !members.length) {
       setJoined(false)
       return
     }
+
     setJoined(members.some((m) => m.uid === user.uid))
   }, [members])
 
+  async function loadWeeklyMoments() {
+    if (!id) return
+
+    setWeeklyLoading(true)
+
+    try {
+      await cleanExpiredMoments(id)
+
+      const data = await getWeeklyMoments(id)
+      setWeeklyMoments(data)
+
+      const user = getCurrentUser()
+      if (user) {
+        const posted = await hasPostedThisWeek(id, user.uid)
+        setHasPosted(posted)
+      } else {
+        setHasPosted(false)
+      }
+    } catch (err) {
+      console.error('Failed to load moments:', err)
+    } finally {
+      setWeeklyLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadWeeklyMoments()
+  }, [id, currentUid])
+
+  async function handleUpload(file) {
+  const user = getCurrentUser()
+  if (!user) return
+
+  const member = members.find((m) => m.uid === user.uid)
+
+  const userForMoment = {
+    ...user,
+    username:
+      member?.username ||
+      member?.name ||
+      member?.displayName ||
+      user.email?.split('@')[0]?.slice(0, 5) ||
+      'Ronda',
+  }
+
+  setUploading(true)
+
+  try {
+    await uploadWeeklyMoment(id, userForMoment, file)
+    await loadWeeklyMoments()
+    setHasPosted(true)
+  } catch (err) {
+    alert(err.message)
+  } finally {
+    setUploading(false)
+  }
+}
+
+
+
+  async function handleDeleteMoment(momentId) {
+    const user = getCurrentUser()
+    if (!user) return
+    if (!confirm('Delete this moment?')) return
+
+    try {
+      await deleteWeeklyMoment(id, momentId, user.uid)
+      await loadWeeklyMoments()
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
   async function handleJoin() {
     setError('')
+
     try {
       let user = getCurrentUser()
       if (!user) user = await signInWithGoogle()
+
       await joinCircle(id, user)
+
       const refreshed = await getCircleMembers(id)
       setMembers(Array.isArray(refreshed) ? refreshed : [])
       setJoined(true)
@@ -117,13 +227,14 @@ export default function CirclePageClient() {
 
     try {
       const user = getCurrentUser()
+
       if (!user) {
         await signInWithGoogle()
         return
       }
 
       await leaveCircle(id, user.uid)
-      
+
       const refreshed = await getCircleMembers(id)
       setMembers(Array.isArray(refreshed) ? refreshed : [])
       setJoined(false)
@@ -139,27 +250,29 @@ export default function CirclePageClient() {
     const cleanText = safe(text).trim().slice(0, MSG_MAX)
     if (!cleanText) return
 
-    const user = getCurrentUser()
+    let user = getCurrentUser()
+
     if (!user) {
       try {
-        await signInWithGoogle()
+        user = await signInWithGoogle()
       } catch (err) {
         setError(err?.message || 'Sign-in required to post')
         return
       }
     }
 
-    const currentUser = getCurrentUser()
-    const member = members.find((m) => m.uid === currentUser?.uid)
-    const authorName = memberLabel(member) !== 'Ronda member'
-      ? memberLabel(member)
-      : currentUser?.username || currentUser?.displayName || 'Ronda member'
+    const member = members.find((m) => m.uid === user?.uid)
+    const authorName =
+      memberLabel(member) !== 'Ronda member'
+        ? memberLabel(member)
+        : user?.username || user?.displayName || 'Ronda member'
 
     setSending(true)
+
     try {
       await sendMessage(id, {
         text: cleanText,
-        author_id: currentUser.uid,
+        author_id: user.uid,
         author_name: authorName,
         reply_to_message: replyTo?.messageId || null,
         reply_to_author: replyTo?.authorName || null,
@@ -183,16 +296,18 @@ export default function CirclePageClient() {
     setReplyTo(null)
   }
 
-  async function handleLike(m) {
-    const user = getCurrentUser()
+  async function handleMessageLike(m) {
+    let user = getCurrentUser()
+
     if (!user) {
       try {
-        await signInWithGoogle()
+        user = await signInWithGoogle()
       } catch {
         return
       }
     }
-    const uid = getCurrentUser()?.uid
+
+    const uid = user?.uid
     if (!uid) return
 
     const alreadyLiked = Array.isArray(m.liked_by) && m.liked_by.includes(uid)
@@ -200,10 +315,14 @@ export default function CirclePageClient() {
     setMessages((prev) =>
       prev.map((msg) => {
         if (msg.id !== m.id) return msg
+
         const likedBy = Array.isArray(msg.liked_by) ? msg.liked_by : []
+
         return {
           ...msg,
-          liked_by: alreadyLiked ? likedBy.filter((u) => u !== uid) : [...likedBy, uid],
+          liked_by: alreadyLiked
+            ? likedBy.filter((u) => u !== uid)
+            : [...likedBy, uid],
         }
       })
     )
@@ -211,9 +330,7 @@ export default function CirclePageClient() {
     try {
       await toggleMessageLike(id, m.id, uid)
     } catch (err) {
-      setMessages((prev) =>
-        prev.map((msg) => (msg.id === m.id ? m : msg))
-      )
+      setMessages((prev) => prev.map((msg) => (msg.id === m.id ? m : msg)))
       setError(err?.message || 'Unable to like')
     }
   }
@@ -234,13 +351,16 @@ export default function CirclePageClient() {
 
   async function handleShare() {
     const url = typeof window !== 'undefined' ? window.location.href : ''
-    const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)
+    const isMobile =
+      typeof navigator !== 'undefined' &&
+      /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)
 
     try {
       if (isMobile && navigator.share) {
         await navigator.share({ title: circle?.title || 'Ronda Circle', url })
         return
       }
+
       await navigator.clipboard.writeText(url)
       setShared(true)
       setTimeout(() => setShared(false), 2000)
@@ -257,7 +377,9 @@ export default function CirclePageClient() {
     return (
       <>
         <Navbar />
-        <main className="page-loading"><span>Loading circle...</span></main>
+        <main className="page-loading">
+          <span>Loading circle...</span>
+        </main>
       </>
     )
   }
@@ -266,7 +388,9 @@ export default function CirclePageClient() {
     return (
       <>
         <Navbar />
-        <main className="page-loading"><span>Circle not found.</span></main>
+        <main className="page-loading">
+          <span>Circle not found.</span>
+        </main>
       </>
     )
   }
@@ -294,6 +418,7 @@ export default function CirclePageClient() {
   return (
     <>
       <Navbar />
+
       <main className="page">
         <div className="container">
           <div className="header">
@@ -301,16 +426,21 @@ export default function CirclePageClient() {
               <h1 className="circle-title">{circle.title || 'Untitled circle'}</h1>
               <p className="header-meta">
                 {type?.label || 'Circle'}
-                {circle.city ? ` · ⚲ ${circle.city}` : ''}
+                {circle.city && ' - ' + circle.city}
               </p>
               <p className="created-by">Created by {displayCreator}</p>
             </div>
+
             {!joined ? (
-              <button onClick={handleJoin} className="btn-join">Join</button>
+              <button onClick={handleJoin} className="btn-join">
+                Join
+              </button>
             ) : (
               <div className="joined-actions">
                 <span className="badge-joined">Joined</span>
-                <button onClick={handleLeave} className="btn-leave">Leave</button>
+                <button onClick={handleLeave} className="btn-leave">
+                  Leave
+                </button>
               </div>
             )}
           </div>
@@ -324,23 +454,55 @@ export default function CirclePageClient() {
               ) : (
                 <span className="members-text">
                   <span className="members-label">Members: </span>
-                  {visibleMembers.map(memberLabel).join(' • ')}
-                  {extraMembersCount > 0 ? ` • +${extraMembersCount}` : ''}
+                  {visibleMembers.map(memberLabel).join(' - ')}
+                  {extraMembersCount > 0 && ` - +${extraMembersCount}`}
                 </span>
               )}
             </div>
-            <span className="members-count">{members.length}/{capacity} members</span>
+
+            <span className="members-count">
+              {members.length}/{capacity} members
+            </span>
           </div>
 
           <p className="be-respectful">Be respectful!</p>
+
+          <div className="weekly-moment">
+            <div className="weekly-moment-header">
+              <h3>Weekly Moment</h3>
+              <p className="weekly-moment-subtitle">
+                One real photo per week. No feed, no pressure.
+              </p>
+            </div>
+
+            {currentUser && !hasPosted && (
+              <WeeklyMomentUpload onUpload={handleUpload} uploading={uploading} />
+            )}
+
+            {currentUser && hasPosted && (
+              <p className="weekly-moment-posted">
+                You already shared your weekly moment.
+              </p>
+            )}
+
+            <WeeklyMomentGrid
+              moments={weeklyMoments}
+              loading={weeklyLoading}
+              currentUserId={currentUid}
+              onDelete={handleDeleteMoment}
+            />
+          </div>
 
           <form className="post-box" onSubmit={handleSend}>
             {replyTo && (
               <div className="reply-indicator">
                 <span>Replying to {replyTo.authorName}</span>
-                <button type="button" onClick={cancelReply}>✕</button>
+                <button type="button" onClick={cancelReply}>
+                  ✕
+                </button>
               </div>
             )}
+
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
@@ -348,6 +510,7 @@ export default function CirclePageClient() {
               maxLength={MSG_MAX}
               rows={2}
             />
+
             <div className="post-actions">
               <span className="counter">{MSG_MAX - safe(text).length} left</span>
               <button type="submit" className="btn-post" disabled={sending}>
@@ -371,30 +534,34 @@ export default function CirclePageClient() {
               const isOwnMessage = m.author_id === currentUid
               const likedBy = Array.isArray(m.liked_by) ? m.liked_by : []
               const isLiked = currentUid ? likedBy.includes(currentUid) : false
+
               return (
                 <div className="message" key={m.id}>
                   {replyTarget && (
                     <p className="replying-to">Replying to {replyTarget}</p>
                   )}
+
                   <div className="message-head">
                     <span className="author">{safe(m.author_name)}</span>
                     {when && <span className="message-time">{when}</span>}
                   </div>
+
                   <p className="message-text">{safe(m.text)}</p>
+
                   <div className="message-actions">
                     <button
                       className={`like-btn${isLiked ? ' liked' : ''}`}
-                      onClick={() => handleLike(m)}
+                      onClick={() => handleMessageLike(m)}
                       aria-label="Like"
                     >
                       {isLiked ? '♥' : '♡'}
-                      {likedBy.length > 0 && <span className="like-count">{likedBy.length}</span>}
+                      {likedBy.length > 0 && (
+                        <span className="like-count">{likedBy.length}</span>
+                      )}
                     </button>
+
                     {isOwnMessage ? (
-                      <button
-                        className="delete-btn"
-                        onClick={() => handleDelete(m.id)}
-                      >
+                      <button className="delete-btn" onClick={() => handleDelete(m.id)}>
                         Delete
                       </button>
                     ) : (
@@ -412,11 +579,17 @@ export default function CirclePageClient() {
           </div>
 
           <div className="bottom">
-            <Link href="/" className="bottom-link">← Back home</Link>
+            <Link href="/" className="bottom-link">
+              ← Back home
+            </Link>
+
             <button onClick={handleShare} className="bottom-link share-link">
               Share group{shared ? ' — copied!' : ''}
             </button>
-            <Link href="/terms" className="bottom-link">Terms</Link>
+
+            <Link href="/terms" className="bottom-link">
+              Terms
+            </Link>
           </div>
         </div>
 
@@ -428,7 +601,7 @@ export default function CirclePageClient() {
             display: flex;
             justify-content: center;
             font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-            color: #f76504;
+            color: #1c1917;
           }
 
           .page-loading {
@@ -523,8 +696,8 @@ export default function CirclePageClient() {
 
           .btn-leave {
             background: transparent;
-            color: #9A918B;
-            border: 1px solid #E9DDD4;
+            color: #9a918b;
+            border: 1px solid #e9ddd4;
             border-radius: 999px;
             padding: 6px 16px;
             font-size: 0.75rem;
@@ -534,9 +707,9 @@ export default function CirclePageClient() {
           }
 
           .btn-leave:hover {
-            background: #FEE2E2;
-            border-color: #DC2626;
-            color: #DC2626;
+            background: #fee2e2;
+            border-color: #dc2626;
+            color: #dc2626;
           }
 
           .members-bar {
@@ -582,6 +755,40 @@ export default function CirclePageClient() {
             color: #706965;
             padding: 8px 0 2px;
             margin: 0;
+          }
+
+          .weekly-moment {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #ede8e2;
+          }
+
+          .weekly-moment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+          }
+
+          .weekly-moment-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1c1917;
+            margin: 0;
+          }
+
+          .weekly-moment-subtitle {
+            font-size: 0.8rem;
+            color: #9a918b;
+            margin: 0;
+          }
+
+          .weekly-moment-posted {
+            color: #059669;
+            font-size: 0.85rem;
+            padding: 8px 0;
           }
 
           .post-box {
@@ -770,14 +977,18 @@ export default function CirclePageClient() {
             color: #9a918b;
           }
 
-          .reply-btn {
+          .reply-btn,
+          .delete-btn {
             font-size: 0.72rem;
-            color: #9a918b;
             background: transparent;
             border: none;
             cursor: pointer;
             padding: 0;
             transition: color 0.2s;
+          }
+
+          .reply-btn {
+            color: #9a918b;
           }
 
           .reply-btn:hover {
@@ -785,13 +996,7 @@ export default function CirclePageClient() {
           }
 
           .delete-btn {
-            font-size: 0.72rem;
             color: #b5ada6;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            transition: color 0.2s;
           }
 
           .delete-btn:hover {

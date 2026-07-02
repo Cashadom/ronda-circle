@@ -3,145 +3,101 @@
   background: #FFFFFF;
   border-radius: 20px;
   border: 1px solid #F0EBE6;
-  padding: 22px 24px;
+  box-shadow: 0 2px 12px rgba(43, 39, 37, 0.05);
+  padding: 24px 26px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 200px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-height: 220px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
 .circle-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 32px rgba(43, 39, 37, 0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(43, 39, 37, 0.08);
 }
 
 .card-body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
-/* ─── Titre + Catégorie ──────────────────────────────────────────────────── */
+/* ─── Ligne titre + badge thème ───────────────────────────────── */
 .card-row-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
 }
 
 .card-title {
   font-family: Inter, sans-serif;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1.05rem;
-  color: #1C1917;
-  line-height: 1.3;
-  margin: 0;
-  flex: 1;
+  color: #2B2725;
+  line-height: 1.25;
 }
 
 .card-category {
   flex-shrink: 0;
   font-family: Inter, sans-serif;
-  font-weight: 500;
-  font-size: 0.7rem;
+  font-weight: 600;
+  font-size: 0.78rem;
   color: #FF6B5A;
   background: #FDE9E5;
-  padding: 4px 12px;
+  padding: 4px 14px;
   border-radius: 999px;
   white-space: nowrap;
 }
 
-/* ─── Ville + Membres ────────────────────────────────────────────────────── */
+/* ─── Ligne ville + membres ──────────────────────────────────── */
 .card-row-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  font-family: Inter, sans-serif;
-  font-size: 0.85rem;
-  color: #706965;
+  gap: 14px;
 }
 
 .card-city {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  font-family: Inter, sans-serif;
+  font-size: 0.88rem;
+  color: #706965;
+  white-space: nowrap;
 }
 
 .card-members {
-  font-weight: 500;
-  color: #2B2725;
-}
-
-/* ─── Description ────────────────────────────────────────────────────────── */
-.card-description {
   font-family: Inter, sans-serif;
   font-size: 0.85rem;
-  line-height: 1.4;
-  color: #706965;
-  margin: 4px 0 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* ─── Statut ─────────────────────────────────────────────────────────────── */
-.card-status-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 4px;
-}
-
-.status-badge {
-  font-family: Inter, sans-serif;
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 2px 10px;
-  border-radius: 999px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.status-badge.open {
-  color: #059669;
-  background: #D1FAE5;
-}
-
-.status-badge.new {
-  color: #D97706;
-  background: #FEF3C7;
-}
-
-.status-badge.full {
-  color: #DC2626;
-  background: #FEE2E2;
-}
-
-.card-spots {
-  font-family: Inter, sans-serif;
-  font-size: 0.75rem;
   color: #9A918B;
+  white-space: nowrap;
 }
 
-/* ─── Footer ─────────────────────────────────────────────────────────────── */
+/* ─── Description ────────────────────────────────────────────── */
+.card-description {
+  font-family: Inter, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: #706965;
+  margin: 2px 0 0;
+}
+
+/* ─── Footer : créateur + strip + bouton Join ────────────────── */
 .card-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 16px;
-  padding-top: 14px;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 16px;
   border-top: 1px solid #F0EBE6;
+  flex-wrap: nowrap;
 }
 
 .card-creator {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 0;
+  flex-shrink: 0;
 }
 
 .creator-avatar {
@@ -152,8 +108,8 @@
   background: #FDE9E5;
   color: #FF6B5A;
   font-family: Inter, sans-serif;
-  font-weight: 600;
-  font-size: 0.7rem;
+  font-weight: 700;
+  font-size: 0.72rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -162,84 +118,89 @@
 
 .creator-name {
   font-family: Inter, sans-serif;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: #9A918B;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-/* ─── Bouton Join ────────────────────────────────────────────────────────── */
+/* ─── Moment Strip ───────────────────────────────────────────── */
+.moment-strip {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  /* chevauchement : chaque image sauf la première est décalée à gauche */
+}
+
+.moment-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid #FFFFFF;
+  flex-shrink: 0;
+  /* chevauchement : toutes les thumbs sauf la première tirent à gauche */
+  margin-left: -8px;
+  transition: transform 0.15s ease;
+}
+
+.moment-thumb:first-child {
+  margin-left: 0;
+}
+
+.moment-strip:hover .moment-thumb {
+  margin-left: -4px;
+}
+
 .btn-join {
   flex-shrink: 0;
   font-family: Inter, sans-serif;
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #FFFFFF;
   background: #FF6B5A;
-  padding: 8px 22px;
+  padding: 9px 22px;
   border-radius: 999px;
   text-decoration: none;
-  transition: background 0.2s ease, transform 0.15s ease;
+  transition: background 0.18s ease;
   display: inline-block;
-  text-align: center;
+  margin-left: auto;
 }
 
 .btn-join:hover {
   background: #F45542;
-  transform: translateY(-1px);
-}
-
-.btn-join.full {
-  background: #D8D2C8;
-  cursor: default;
-  pointer-events: none;
-}
-
-.btn-join.full:hover {
-  background: #D8D2C8;
-  transform: none;
 }
 
 /* ─── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .circle-card {
-    padding: 18px 16px;
-    min-height: 160px;
+    padding: 20px 18px;
+    min-height: 180px;
   }
 
   .card-title {
     font-size: 0.95rem;
   }
 
+  .card-description,
+  .card-city,
+  .card-members,
+  .creator-name {
+    font-size: 0.8rem;
+  }
+
   .card-category {
-    font-size: 0.65rem;
-    padding: 3px 10px;
+    font-size: 0.72rem;
+    padding: 3px 11px;
   }
 
-  .card-row-meta {
-    font-size: 0.8rem;
-  }
-
-  .card-description {
-    font-size: 0.8rem;
+  .moment-thumb {
+    width: 30px;
+    height: 30px;
+    margin-left: -6px;
   }
 
   .btn-join {
-    padding: 6px 16px;
-    font-size: 0.75rem;
-  }
-
-  .creator-name {
-    font-size: 0.75rem;
-  }
-
-  .card-status-row {
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .card-spots {
-    font-size: 0.7rem;
+    padding: 7px 16px;
+    font-size: 0.8rem;
   }
 }

@@ -1,0 +1,257 @@
+/* ─── Weekly Moment / Ronda style ───────────────────────────────────── */
+
+.weekly-moment {
+  margin-top: 18px;
+  padding: 16px;
+  background: #fff8f2;
+  border: 1px solid #ede8e2;
+  border-radius: 18px;
+}
+
+.weekly-moment-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.weekly-moment-header h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1c1917;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.weekly-moment-subtitle {
+  font-size: 0.78rem;
+  color: #8f857d;
+  margin: 0;
+}
+
+.weekly-moment-error {
+  color: #dc2626;
+  font-size: 0.82rem;
+  padding: 8px 0;
+}
+
+.weekly-moment-posted {
+  color: #8f857d;
+  background: #ffffff;
+  border: 1px solid #ede8e2;
+  border-radius: 999px;
+  display: inline-flex;
+  padding: 7px 13px;
+  font-size: 0.8rem;
+  margin: 0 0 14px;
+}
+
+/* ─── Upload ───────────────────────────────────────────────────────── */
+
+.weekly-moment-upload {
+  margin-bottom: 14px;
+}
+
+.weekly-moment-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  background: #ffffff;
+  border: 1px solid #ffb7ab;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: #ff6b5a;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.weekly-moment-upload-btn::before {
+  content: "+";
+  font-size: 1rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.weekly-moment-upload-btn:hover {
+  background: #ff6b5a;
+  border-color: #ff6b5a;
+  color: #ffffff;
+}
+
+.weekly-moment-upload-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.weekly-moment-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #ede8e2;
+}
+
+.weekly-moment-preview img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.weekly-moment-preview-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.weekly-moment-preview-actions button {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.weekly-moment-preview-actions .submit {
+  background: #ff6b5a;
+  color: #ffffff;
+}
+
+.weekly-moment-preview-actions .submit:hover {
+  background: #f45542;
+}
+
+.weekly-moment-preview-actions .cancel {
+  background: #f5f0eb;
+  color: #706965;
+}
+
+.weekly-moment-preview-actions .cancel:hover {
+  background: #e8ddd4;
+}
+
+.weekly-moment-preview-file {
+  font-size: 0.72rem;
+  color: #9a918b;
+  margin: 0 0 7px;
+}
+
+/* ─── Grid ─────────────────────────────────────────────────────────── */
+
+.weekly-moment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 10px;
+}
+
+.weekly-moment-empty,
+.weekly-moment-loading {
+  text-align: center;
+  padding: 18px 0;
+  color: #9a918b;
+  font-size: 0.82rem;
+}
+
+/* ─── Card ─────────────────────────────────────────────────────────── */
+
+.weekly-moment-card {
+  background: #ffffff;
+  border: 1px solid #ede8e2;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.weekly-moment-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(255, 107, 90, 0.08);
+}
+
+.weekly-moment-card img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+
+.weekly-moment-card-footer {
+  padding: 8px 9px 9px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+
+.weekly-moment-author {
+  font-weight: 650;
+  font-size: 0.74rem;
+  color: #1c1917;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weekly-moment-like {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff8f2;
+  border: 1px solid #ede8e2;
+  font-size: 0.75rem;
+  color: #9a918b;
+  cursor: pointer;
+  padding: 3px 7px;
+  border-radius: 999px;
+}
+
+.weekly-moment-like:hover,
+.weekly-moment-like.liked {
+  background: #fff0ec;
+  border-color: #ffb7ab;
+  color: #ff6b5a;
+}
+
+.weekly-moment-like-count {
+  font-size: 0.68rem;
+  color: inherit;
+}
+
+.weekly-moment-delete {
+  background: transparent;
+  border: none;
+  color: #b5ada6;
+  font-size: 0.68rem;
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 999px;
+}
+
+.weekly-moment-delete:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+@media (max-width: 480px) {
+  .weekly-moment {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .weekly-moment-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .weekly-moment-card-footer {
+    padding: 7px;
+  }
+
+  .weekly-moment-author {
+    font-size: 0.68rem;
+  }
+}
