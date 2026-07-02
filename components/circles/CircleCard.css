@@ -10,6 +10,7 @@
   justify-content: space-between;
   min-height: 220px;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
+  overflow: hidden;
 }
 
 .circle-card:hover {
@@ -23,7 +24,6 @@
   gap: 10px;
 }
 
-/* ─── Ligne titre + badge thème ───────────────────────────────── */
 .card-row-top {
   display: flex;
   align-items: flex-start;
@@ -37,6 +37,7 @@
   font-size: 1.05rem;
   color: #2B2725;
   line-height: 1.25;
+  margin: 0;
 }
 
 .card-category {
@@ -51,7 +52,6 @@
   white-space: nowrap;
 }
 
-/* ─── Ligne ville + membres ──────────────────────────────────── */
 .card-row-meta {
   display: flex;
   align-items: center;
@@ -63,17 +63,19 @@
   font-family: Inter, sans-serif;
   font-size: 0.88rem;
   color: #706965;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .card-members {
   font-family: Inter, sans-serif;
   font-size: 0.85rem;
-  color: #9A918B;
+  color: #2B2725;
   white-space: nowrap;
 }
 
-/* ─── Description ────────────────────────────────────────────── */
 .card-description {
   font-family: Inter, sans-serif;
   font-size: 0.9rem;
@@ -82,22 +84,21 @@
   margin: 2px 0 0;
 }
 
-/* ─── Footer : créateur + strip + bouton Join ────────────────── */
 .card-footer {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin-top: 18px;
   padding-top: 16px;
   border-top: 1px solid #F0EBE6;
-  flex-wrap: nowrap;
 }
 
 .card-creator {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
+  min-width: 0;
 }
 
 .creator-avatar {
@@ -121,38 +122,32 @@
   font-size: 0.82rem;
   color: #9A918B;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ─── Moment Strip ───────────────────────────────────────────── */
 .moment-strip {
   display: flex;
   align-items: center;
-  flex: 1;
-  /* chevauchement : chaque image sauf la première est décalée à gauche */
+  min-width: 0;
+  overflow: hidden;
 }
 
 .moment-thumb {
   width: 36px;
   height: 36px;
-  border-radius: 8px;
+  border-radius: 9px;
   object-fit: cover;
   border: 2px solid #FFFFFF;
-  flex-shrink: 0;
-  /* chevauchement : toutes les thumbs sauf la première tirent à gauche */
+  flex: 0 0 36px;
   margin-left: -8px;
-  transition: transform 0.15s ease;
 }
 
 .moment-thumb:first-child {
   margin-left: 0;
 }
 
-.moment-strip:hover .moment-thumb {
-  margin-left: -4px;
-}
-
 .btn-join {
-  flex-shrink: 0;
   font-family: Inter, sans-serif;
   font-weight: 600;
   font-size: 0.85rem;
@@ -162,23 +157,32 @@
   border-radius: 999px;
   text-decoration: none;
   transition: background 0.18s ease;
-  display: inline-block;
-  margin-left: auto;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .btn-join:hover {
   background: #F45542;
 }
 
-/* ─── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .circle-card {
-    padding: 20px 18px;
+    padding: 18px 16px;
     min-height: 180px;
   }
 
+  .card-row-top {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .card-row-meta {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
   .card-title {
-    font-size: 0.95rem;
+    font-size: 0.98rem;
   }
 
   .card-description,
@@ -189,18 +193,36 @@
   }
 
   .card-category {
-    font-size: 0.72rem;
-    padding: 3px 11px;
+    font-size: 0.7rem;
+    padding: 3px 10px;
+  }
+
+  .card-footer {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .card-creator {
+    width: 100%;
+  }
+
+  .moment-strip {
+    width: 100%;
+    overflow-x: auto;
+    padding: 2px 0;
   }
 
   .moment-thumb {
-    width: 30px;
-    height: 30px;
-    margin-left: -6px;
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+    margin-left: 0;
+    margin-right: 6px;
   }
 
   .btn-join {
-    padding: 7px 16px;
+    width: 100%;
+    padding: 9px 16px;
     font-size: 0.8rem;
   }
 }

@@ -19,7 +19,7 @@ export default function CircleCard({ circle }) {
         </div>
 
         <div className="card-row-meta">
-          <span className="card-city">⚲ {circle.city || 'City (optionnel)'}</span>
+          <span className="card-city">⚲ {circle.city || 'City'}</span>
           <span className="card-members">{count} / {capacity} members</span>
         </div>
 
