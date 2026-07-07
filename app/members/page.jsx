@@ -33,7 +33,7 @@ export default function MembersPage() {
 
   useEffect(() => {
     async function fetchMembers() {
-      try {
+       {
         const usersSnapshot = await getDocs(collection(db, 'users'))
         const users = usersSnapshot.docs.map(doc => ({
           uid: doc.id,
@@ -50,7 +50,7 @@ export default function MembersPage() {
         setMembers(sortedMembers)
       } catch (err) {
         console.error('Error loading members:', err)
-        setError('Unable to load members. Please try again.')
+        setError('Create a free account to view the members of this Circle.')
       } finally {
         setLoading(false)
       }
