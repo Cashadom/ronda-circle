@@ -30,7 +30,7 @@ export default function Navbar() {
       >
         <div className="ronda-navbar-inner">
 
-          {/* LOGO */}
+          {/* LOGO + SLOGAN */}
 
           <div className="ronda-brand">
 
@@ -137,7 +137,6 @@ export default function Navbar() {
 
         .ronda-navbar {
           position: fixed;
-
           top: 0;
           left: 0;
           right: 0;
@@ -146,13 +145,12 @@ export default function Navbar() {
 
           width: 100%;
 
-          background: rgba(255,255,255,0.88);
+          background: rgba(255, 255, 255, 0.88);
 
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
 
-          border-bottom:
-            1px solid rgba(0,0,0,0.03);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.03);
 
           transition:
             background 0.3s ease,
@@ -163,10 +161,9 @@ export default function Navbar() {
 
 
         .ronda-navbar.scrolled {
-          background: rgba(255,255,255,0.96);
+          background: rgba(255, 255, 255, 0.96);
 
-          border-bottom:
-            1px solid rgba(0,0,0,0.05);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
 
 
@@ -177,7 +174,6 @@ export default function Navbar() {
           height: 90px;
 
           margin: 0 auto;
-
           padding: 0 48px;
 
           display: flex;
@@ -239,8 +235,7 @@ export default function Navbar() {
 
           opacity: 0.85;
 
-          border-left:
-            1px solid #E9DDD4;
+          border-left: 1px solid #E9DDD4;
 
           padding-left: 16px;
 
@@ -311,8 +306,7 @@ export default function Navbar() {
           background-size: cover;
           background-position: center;
 
-          border:
-            1.5px solid rgba(255,107,81,0.2);
+          border: 1.5px solid rgba(255, 107, 81, 0.2);
 
           transition:
             transform 0.2s ease,
@@ -323,8 +317,7 @@ export default function Navbar() {
         .ronda-avatar:hover {
           transform: scale(1.04);
 
-          border-color:
-            var(--coral);
+          border-color: var(--coral);
         }
 
 
@@ -353,8 +346,7 @@ export default function Navbar() {
 
           text-decoration: none;
 
-          border:
-            1.5px solid var(--coral-border);
+          border: 1.5px solid var(--coral-border);
 
           transition: all 0.2s ease;
         }
@@ -363,7 +355,7 @@ export default function Navbar() {
         .ronda-signin:hover {
           background: var(--coral);
 
-          color: #fff;
+          color: #FFFFFF;
 
           border-color: var(--coral);
         }
@@ -386,13 +378,12 @@ export default function Navbar() {
         @media (max-width: 900px) {
 
           .ronda-navbar-inner {
-            padding:
-              0 24px;
+            padding: 0 24px;
           }
 
 
           .ronda-slogan {
-            display: none;
+            font-size: 0.78rem;
           }
 
         }
@@ -404,33 +395,68 @@ export default function Navbar() {
 
         @media (max-width: 640px) {
 
+          /*
+            Première ligne :
+            LOGO | SLOGAN | AVATAR
+          */
+
           .ronda-navbar-inner {
             height: 68px;
 
-            padding:
-              0 20px;
+            padding: 0 14px;
+
+            gap: 10px;
+          }
+
+
+          .ronda-brand {
+            flex: 1;
+
+            min-width: 0;
+
+            gap: 9px;
           }
 
 
           .ronda-logo {
-            height: 54px;
+            height: 46px;
+
+            max-width: 92px;
           }
 
 
-          /*
-            On retire entièrement
-            la navigation desktop.
-          */
+          .ronda-slogan {
+            display: block;
+
+            min-width: 0;
+            max-width: 130px;
+
+            padding-left: 9px;
+
+            border-left: 1px solid #E9DDD4;
+
+            font-size: 0.66rem;
+            line-height: 1.25;
+            font-weight: 500;
+
+            color: var(--coral);
+
+            letter-spacing: -0.01em;
+
+            white-space: normal;
+
+            opacity: 0.9;
+          }
+
+
+          /* DESKTOP NAV OFF */
 
           .ronda-desktop-nav {
             display: none;
           }
 
 
-          /*
-            Avatar seul à droite
-            de la première ligne.
-          */
+          /* AVATAR MOBILE */
 
           .ronda-mobile-profile {
             display: flex;
@@ -440,32 +466,27 @@ export default function Navbar() {
           }
 
 
-          .ronda-mobile-profile
-          .ronda-profile-link {
+          .ronda-mobile-profile .ronda-profile-link {
             margin-left: 0;
           }
 
 
-          .ronda-mobile-profile
-          .ronda-avatar {
+          .ronda-mobile-profile .ronda-avatar {
             width: 34px;
             height: 34px;
           }
 
 
-          .ronda-mobile-profile
-          .ronda-signin {
-            padding:
-              6px 15px;
+          .ronda-mobile-profile .ronda-signin {
+            padding: 6px 12px;
 
-            font-size:
-              0.78rem;
+            font-size: 0.74rem;
           }
 
 
           /*
             Deuxième ligne :
-            People / Connections / Messages
+            PEOPLE / CONNECTIONS / MESSAGES
           */
 
           .ronda-mobile-nav {
@@ -475,16 +496,13 @@ export default function Navbar() {
             align-items: center;
             justify-content: center;
 
-            gap: 4px;
+            gap: 0;
 
-            padding:
-              0 12px;
+            padding: 0 12px;
 
-            border-top:
-              1px solid rgba(0,0,0,0.035);
+            border-top: 1px solid rgba(0, 0, 0, 0.035);
 
-            box-sizing:
-              border-box;
+            box-sizing: border-box;
           }
 
 
@@ -502,29 +520,68 @@ export default function Navbar() {
               system-ui,
               sans-serif;
 
-            font-size:
-              0.78rem;
+            font-size: 0.76rem;
+            font-weight: 500;
 
-            font-weight:
-              500;
+            color: #44403C;
 
-            color:
-              #44403C;
+            text-decoration: none;
 
-            text-decoration:
-              none;
+            padding: 8px 4px;
 
-            padding:
-              8px 5px;
-
-            white-space:
-              nowrap;
+            white-space: nowrap;
           }
 
 
           .ronda-mobile-link:active {
-            color:
-              var(--coral);
+            color: var(--coral);
+          }
+
+        }
+
+
+        /* ================================================================
+           VERY SMALL MOBILE
+        ================================================================= */
+
+        @media (max-width: 380px) {
+
+          .ronda-navbar-inner {
+            padding: 0 10px;
+
+            gap: 7px;
+          }
+
+
+          .ronda-logo {
+            height: 42px;
+
+            max-width: 82px;
+          }
+
+
+          .ronda-brand {
+            gap: 7px;
+          }
+
+
+          .ronda-slogan {
+            max-width: 112px;
+
+            padding-left: 7px;
+
+            font-size: 0.61rem;
+          }
+
+
+          .ronda-mobile-profile .ronda-avatar {
+            width: 32px;
+            height: 32px;
+          }
+
+
+          .ronda-mobile-link {
+            font-size: 0.72rem;
           }
 
         }
@@ -556,8 +613,7 @@ function UserAction({ user }) {
         <div
           className="ronda-avatar"
           style={{
-            backgroundImage:
-              `url("${avatar}")`,
+            backgroundImage: `url("${avatar}")`,
           }}
         />
       </Link>
