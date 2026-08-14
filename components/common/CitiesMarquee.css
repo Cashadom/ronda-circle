@@ -7,67 +7,228 @@
   box-sizing: border-box;
 }
 
+
+/* ─── Label ───────────────────────────────────────────────────────────── */
+
 .marquee-label {
-  font-family: Inter, sans-serif;
+  font-family:
+    "Avenir Next",
+    "Segoe UI",
+    Inter,
+    system-ui,
+    sans-serif;
+
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+
   color: #9A918B;
+
   margin-bottom: 18px;
+
   font-weight: 600;
 }
 
+
+/* ─── Carrousel ───────────────────────────────────────────────────────── */
+
 .marquee-track {
   display: flex;
+
   gap: 12px;
+
   width: fit-content;
+
   animation: marquee 24s linear infinite;
+
   will-change: transform;
 }
 
+
 .marquee-city {
   flex: 0 0 auto;
+
   background: #FFFFFF;
+
   border: 1px solid #E9DDD4;
+
   border-radius: 999px;
+
   padding: 4px 18px;
-  font-family: Inter, sans-serif;
+
+  font-family:
+    "Avenir Next",
+    "Segoe UI",
+    Inter,
+    system-ui,
+    sans-serif;
+
   font-size: 0.85rem;
+
   color: #4AA8F7;
-font-weight: 400;
+
+  font-weight: 400;
+
   white-space: nowrap;
 }
+
+
+/* ─── Activité récente ────────────────────────────────────────────────── */
+
+.marquee-activity {
+  min-height: 22px;
+
+  margin-top: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  font-family:
+    "Avenir Next",
+    "Segoe UI",
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size: 0.78rem;
+
+  color: #817A75;
+
+  line-height: 1.4;
+
+  opacity: 1;
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+
+/* ─── Petit point "live" ─────────────────────────────────────────────── */
+
+.activity-dot {
+  width: 6px;
+  height: 6px;
+
+  margin-right: 4px;
+
+  border-radius: 50%;
+
+  background: #66B98C;
+
+  flex-shrink: 0;
+
+  box-shadow:
+    0 0 0 3px rgba(102, 185, 140, 0.10);
+}
+
+
+/* ─── Nom du nouveau membre ───────────────────────────────────────────── */
+
+.activity-name {
+  color: #343434;
+
+  font-weight: 650;
+}
+
+
+/* ─── Texte activité ──────────────────────────────────────────────────── */
+
+.activity-text {
+  color: #5F5A56;
+
+  font-weight: 450;
+}
+
+
+/* ─── Temps ───────────────────────────────────────────────────────────── */
+
+.activity-time {
+  color: #FF6B5A;
+
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+
+/* ─── Animation carrousel ─────────────────────────────────────────────── */
 
 @keyframes marquee {
   from {
     transform: translateX(0);
   }
+
   to {
     transform: translateX(-50%);
   }
 }
 
+
+/* ─── Mobile ──────────────────────────────────────────────────────────── */
+
 @media (max-width: 640px) {
+
   .cities-marquee {
     width: 100%;
     max-width: 100%;
+
     margin: 6px auto 18px;
+
     overflow: hidden;
   }
 
+
   .marquee-label {
     font-size: 0.68rem;
+
     margin-bottom: 10px;
   }
 
+
   .marquee-track {
     gap: 8px;
+
     animation-duration: 18s;
   }
 
+
   .marquee-city {
     flex: 0 0 auto;
+
     font-size: 0.72rem;
+
     padding: 6px 12px;
+  }
+
+
+  .marquee-activity {
+    min-height: 20px;
+
+    margin-top: 13px;
+
+    padding: 0 14px;
+
+    font-size: 0.72rem;
+
+    flex-wrap: wrap;
+
+    gap: 3px;
+  }
+
+
+  .activity-dot {
+    width: 5px;
+    height: 5px;
+
+    margin-right: 3px;
+  }
+
+
+  .activity-time {
+    white-space: nowrap;
   }
 }

@@ -1,228 +1,317 @@
-/* ─── Carte Circle ───────────────────────────────────────────────────────── */
+/* ─── Carte People compacte ─────────────────────────────────────────────── */
+
 .circle-card {
-  background: #FFFFFF;
-  border-radius: 20px;
-  border: 1px solid #F0EBE6;
-  box-shadow: 0 2px 12px rgba(43, 39, 37, 0.05);
-  padding: 24px 26px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 220px;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+
+  border: 1px solid rgba(43, 39, 37, 0.04);
+  border-radius: 10px;
+
+  box-shadow: none;
+
+  padding: 12px 16px;
+  margin: 0;
+
+  display: block;
+  min-height: 0;
+
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .circle-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(43, 39, 37, 0.08);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(43, 39, 37, 0.05);
 }
+
+
+/* ─── Contenu général ──────────────────────────────────────────────────── */
 
 .card-body {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: block;
+  width: 100%;
+  text-align: left;
 }
 
-.card-row-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.card-title {
-  font-family: Inter, sans-serif;
-  font-weight: 700;
-  font-size: 1.05rem;
-  color: #2B2725;
-  line-height: 1.25;
-  margin: 0;
-}
-
-.card-category {
-  flex-shrink: 0;
-  font-family: Inter, sans-serif;
-  font-weight: 600;
-  font-size: 0.78rem;
-  color: #FF6B5A;
-  background: #FDE9E5;
-  padding: 4px 14px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.card-row-meta {
+.card-main-line {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+
+  gap: 18px;
+  width: 100%;
 }
 
-.card-city {
-  font-family: Inter, sans-serif;
-  font-size: 0.88rem;
-  color: #706965;
+
+/* ─── Bloc personne ────────────────────────────────────────────────────── */
+
+.card-person {
+  flex: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
-.card-members {
-  font-family: Inter, sans-serif;
-  font-size: 0.85rem;
-  color: #2B2725;
-  white-space: nowrap;
-}
-
-.card-description {
-  font-family: Inter, sans-serif;
-  font-size: 0.9rem;
-  line-height: 1.45;
-  color: #706965;
-  margin: 2px 0 0;
-}
-
-.card-footer {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid #F0EBE6;
 }
 
-.card-creator {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
 
-.creator-avatar {
-  width: 26px;
-  height: 26px;
-  flex-shrink: 0;
+/* ─── Photo ────────────────────────────────────────────────────────────── */
+
+.card-person-avatar {
+  width: 42px;
+  height: 42px;
+
+  flex: 0 0 42px;
+
   border-radius: 50%;
-  background: #FDE9E5;
-  color: #FF6B5A;
-  font-family: Inter, sans-serif;
+  object-fit: cover;
+  object-position: center;
+
+  display: block;
+
+  background: #FFFFFF;
+
+  border: 2px solid rgba(255, 255, 255, 0.95);
+
+  box-shadow: 0 2px 8px rgba(43, 39, 37, 0.08);
+}
+
+
+/* ─── Texte ────────────────────────────────────────────────────────────── */
+
+.card-text {
+  flex: 1;
+  min-width: 0;
+
+  font-family:
+    "Avenir Next",
+    "Segoe UI",
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size: 0.9rem;
+  font-weight: 450;
+
+  line-height: 1.45;
+  letter-spacing: -0.012em;
+
+  color: #393532;
+}
+
+.card-primary-line {
+  display: block;
+}
+
+
+/* ─── Nom ──────────────────────────────────────────────────────────────── */
+
+.card-title {
+  font-family:
+    "Avenir Next",
+    "Segoe UI",
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size: 0.94rem;
   font-weight: 700;
-  font-size: 0.72rem;
+
+  letter-spacing: -0.015em;
+}
+
+
+/* Femme */
+.card-title-female {
+  color: #E93C87;
+}
+
+
+/* Homme */
+.card-title-male {
+  color: #3478C5;
+}
+
+
+/* Sexe non indiqué */
+.card-title-neutral {
+  color: #343434;
+}
+
+
+/* ─── Sexe ─────────────────────────────────────────────────────────────── */
+
+.card-gender {
+  margin-left: 2px;
+
+  font-size: 0.84rem;
+  font-weight: 600;
+
+  color: #817A75;
+}
+
+
+/* ─── Phrase ───────────────────────────────────────────────────────────── */
+
+.card-sentence {
+  color: #4B4642;
+  font-weight: 400;
+}
+
+
+/* ─── Intentions ───────────────────────────────────────────────────────── */
+
+.card-intentions-text {
+  color: #FF604E;
+  font-weight: 600;
+}
+
+
+/* ─── Centres d’intérêt ────────────────────────────────────────────────── */
+
+.card-interests {
+  margin-top: 3px;
+
+  font-size: 0.76rem;
+  line-height: 1.35;
+
+  color: #817A75;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* ─── Zone bouton ──────────────────────────────────────────────────────── */
+
+.card-footer {
+  flex-shrink: 0;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  text-transform: uppercase;
+
+  margin: 0;
+  padding: 0;
+
+  border: none;
 }
 
-.creator-name {
-  font-family: Inter, sans-serif;
-  font-size: 0.82rem;
-  color: #9A918B;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
-.moment-strip {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.moment-thumb {
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
-  object-fit: cover;
-  border: 2px solid #FFFFFF;
-  flex: 0 0 36px;
-  margin-left: -8px;
-}
-
-.moment-thumb:first-child {
-  margin-left: 0;
-}
+/* ─── Bouton Connect ───────────────────────────────────────────────────── */
 
 .btn-join {
-  font-family: Inter, sans-serif;
-  font-weight: 600;
-  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 88px;
+
+  font-family:
+    "Avenir Next",
+    "Segoe UI",
+    Inter,
+    system-ui,
+    sans-serif;
+
+  font-size: 0.77rem;
+  font-weight: 650;
+
   color: #FFFFFF;
   background: #FF6B5A;
-  padding: 9px 22px;
+
+  padding: 7px 18px;
+
   border-radius: 999px;
+  border: none;
+
   text-decoration: none;
-  transition: background 0.18s ease;
-  text-align: center;
-  white-space: nowrap;
+
+  box-shadow: 0 3px 10px rgba(255, 107, 90, 0.14);
+
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .btn-join:hover {
   background: #F45542;
+
+  transform: translateY(-1px);
+
+  box-shadow: 0 5px 14px rgba(255, 107, 90, 0.2);
 }
 
+
+/* ─── Anciennes classes masquées ───────────────────────────────────────── */
+
+.card-person-avatar-wrapper,
+.card-person-avatar-fallback,
+.card-row-top,
+.card-row-meta,
+.card-city,
+.card-intentions,
+.card-category,
+.card-members,
+.card-description,
+.card-creator,
+.creator-avatar,
+.creator-name,
+.moment-strip,
+.moment-thumb {
+  display: none;
+}
+
+
+/* ─── Mobile ───────────────────────────────────────────────────────────── */
+
 @media (max-width: 640px) {
+
   .circle-card {
-    padding: 18px 16px;
-    min-height: 180px;
+    padding: 10px 12px;
+    border-radius: 9px;
   }
 
-  .card-row-top {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .card-row-meta {
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .card-title {
-    font-size: 0.98rem;
-  }
-
-  .card-description,
-  .card-city,
-  .card-members,
-  .creator-name {
-    font-size: 0.8rem;
-  }
-
-  .card-category {
-    font-size: 0.7rem;
-    padding: 3px 10px;
-  }
-
-  .card-footer {
-    grid-template-columns: 1fr;
+  .card-main-line {
     gap: 10px;
   }
 
-  .card-creator {
-    width: 100%;
+  .card-person {
+    gap: 9px;
   }
 
-  .moment-strip {
-    width: 100%;
-    overflow-x: auto;
-    padding: 2px 0;
+  .card-person-avatar {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
   }
 
-  .moment-thumb {
-    width: 34px;
-    height: 34px;
-    flex-basis: 34px;
-    margin-left: 0;
-    margin-right: 6px;
+  .card-text {
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+
+  .card-title {
+    font-size: 0.84rem;
+  }
+
+  .card-gender {
+    font-size: 0.76rem;
+  }
+
+  .card-interests {
+    font-size: 0.7rem;
   }
 
   .btn-join {
-    width: 100%;
-    padding: 9px 16px;
-    font-size: 0.8rem;
+    min-width: 72px;
+
+    font-size: 0.7rem;
+
+    padding: 6px 11px;
   }
 }
