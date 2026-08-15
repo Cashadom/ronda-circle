@@ -1,1033 +1,2087 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  setDoc,
+  updateDoc,
+  serverTimestamp,
+} from 'firebase/firestore'
+
 import Navbar from '@/components/Navbar'
-import { getCurrentUser, signInWithGoogle } from '@/lib/auth'
-import { getCircleType } from '@/lib/circles'
-import { getCircle, getCircleMembers, joinCircle, leaveCircle, sendMessage, subscribeMessages, toggleMessageLike, deleteMessage } from '@/lib/circleService'
+import Footer from '@/components/common/Footer'
+
+import {
+  getCurrentUser,
+  signInWithGoogle,
+  onAuthChange,
+} from '@/lib/auth'
+
+import {
+  getCircle,
+  getCircleMembers,
+  joinCircle,
+  leaveCircle,
+} from '@/lib/circleService'
+
 import { getDisplayName } from '@/lib/users'
-import WeeklyMomentUpload from '@/components/weekly/WeeklyMomentUpload'
-import WeeklyMomentGrid from '@/components/weekly/WeeklyMomentGrid'
-import { 
-  getWeeklyMoments, 
-  uploadWeeklyMoment, 
-  toggleLike, 
-  deleteWeeklyMoment,
-  hasPostedThisWeek,
-  cleanExpiredMoments,
-} from '@/lib/weeklyMoments'
+import { db } from '@/lib/firebase'
 
-const MSG_MAX = 180
 
-function safe(value) {
-  return typeof value === 'string' ? value : value == null ? '' : String(value)
+function normalizeType(value = '') {
+  const item = String(value)
+    .trim()
+    .toLowerCase()
+
+  if (
+    item === 'friend' ||
+    item === 'friends' ||
+    item === 'friendship' ||
+    item === 'social'
+  ) {
+    return 'Friends'
+  }
+
+  if (
+    item === 'date' ||
+    item === 'dating'
+  ) {
+    return 'Date'
+  }
+
+  if (
+    item === 'business' ||
+    item === 'work' ||
+    item === 'job' ||
+    item === 'jobs' ||
+    item === 'networking'
+  ) {
+    return 'Business'
+  }
+
+  return 'Circle'
 }
 
-function memberLabel(m) {
-  if (!m) return 'Ronda member'
-  return m.username || m.name || m.displayName || 'Ronda member'
+
+function buildCircleName(circle) {
+  const city =
+    String(circle?.city || '')
+      .trim()
+      .toUpperCase()
+
+  const type =
+    normalizeType(
+      circle?.type ||
+      circle?.category
+    )
+
+  if (city && type !== 'Circle') {
+    return `Ronda Club · ${city} · ${type}`
+  }
+
+  return (
+    circle?.title ||
+    'Ronda Club'
+  )
 }
 
-function timeAgo(input) {
-  if (!input) return ''
-  const date = input instanceof Date ? input : new Date(input)
-  if (Number.isNaN(date.getTime())) return ''
-  const diffMs = Date.now() - date.getTime()
-  const diffMin = Math.floor(diffMs / 60000)
-  if (diffMin < 1) return 'just now'
-  if (diffMin < 60) return `${diffMin}m ago`
-  const diffH = Math.floor(diffMin / 60)
-  if (diffH < 24) return `${diffH}h ago`
-  const diffD = Math.floor(diffH / 24)
-  if (diffD === 1) return 'yesterday'
-  if (diffD < 7) return `${diffD}d ago'
-  return date.toLocaleDateString()
+
+function memberName(member) {
+  return (
+    member?.displayName ||
+    member?.name ||
+    member?.username ||
+    'Ronda member'
+  )
 }
+
 
 export default function CirclePageClient() {
   const { id } = useParams()
+
   const [circle, setCircle] = useState(null)
   const [circleLoading, setCircleLoading] = useState(true)
+
   const [members, setMembers] = useState([])
   const [membersLoading, setMembersLoading] = useState(true)
-  const [creatorName, setCreatorName] = useState(null)
-  const [messages, setMessages] = useState([])
-  const [text, setText] = useState('')
-  const [replyTo, setReplyTo] = useState(null)
-  const [error, setError] = useState('')
+
+  const [creatorName, setCreatorName] = useState('Ronda member')
+
+  const [currentUser, setCurrentUser] = useState(null)
   const [joined, setJoined] = useState(false)
-  const [sending, setSending] = useState(false)
-  const [shared, setShared] = useState(false)
 
-  // ─── Weekly Moments States ──────────────────────────────────────────────
-  const [weeklyMoments, setWeeklyMoments] = useState([])
-  const [weeklyLoading, setWeeklyLoading] = useState(true)
-  const [hasPosted, setHasPosted] = useState(false)
-  const [uploading, setUploading] = useState(false)
+  const [connections, setConnections] = useState([])
 
-  const currentUid = getCurrentUser()?.uid
-  const currentUser = getCurrentUser()
+  const [search, setSearch] = useState('')
+  const [genderFilter, setGenderFilter] = useState('all')
 
-  // ─── Circle ───────────────────────────────────────────────────────────
+  const [error, setError] = useState('')
+
+
+  /* ─────────────────────────────────────────────
+     AUTH
+  ───────────────────────────────────────────── */
+
+  useEffect(() => {
+    const unsub = onAuthChange((user) => {
+      setCurrentUser(user || null)
+    })
+
+    return () => unsub()
+  }, [])
+
+
+  /* ─────────────────────────────────────────────
+     LOAD CIRCLE
+  ───────────────────────────────────────────── */
+
   useEffect(() => {
     if (!id) return
+
     setCircleLoading(true)
+
     getCircle(id)
-      .then(setCircle)
-      .catch(() => setCircle(null))
-      .finally(() => setCircleLoading(false))
-  }, [id])
-
-  // ─── Membres + créateur ──────────────────────────────────────────────
-  useEffect(() => {
-    if (!id) return
-    setMembersLoading(true)
-    getCircleMembers(id)
-      .then((list) => {
-        setMembers(Array.isArray(list) ? list : [])
+      .then((data) => {
+        setCircle(data || null)
       })
-      .catch(() => setMembers([]))
-      .finally(() => setMembersLoading(false))
+      .catch(() => {
+        setCircle(null)
+      })
+      .finally(() => {
+        setCircleLoading(false)
+      })
   }, [id])
 
+
+  /* ─────────────────────────────────────────────
+     LOAD MEMBERS
+  ───────────────────────────────────────────── */
+
+  async function loadMembers() {
+    if (!id) return
+
+    setMembersLoading(true)
+
+    try {
+      const list =
+        await getCircleMembers(id)
+
+      setMembers(
+        Array.isArray(list)
+          ? list
+          : []
+      )
+    } catch (err) {
+      console.error(
+        'Error loading Circle members:',
+        err
+      )
+
+      setMembers([])
+    } finally {
+      setMembersLoading(false)
+    }
+  }
+
+
   useEffect(() => {
-    if (!circle?.created_by) return
-    getDisplayName(circle.created_by)
-      .then(setCreatorName)
-      .catch(() => setCreatorName(null))
+    loadMembers()
+  }, [id])
+
+
+  /* ─────────────────────────────────────────────
+     CREATOR
+  ───────────────────────────────────────────── */
+
+  useEffect(() => {
+    if (!circle?.created_by) {
+      setCreatorName('Ronda member')
+      return
+    }
+
+    getDisplayName(
+      circle.created_by
+    )
+      .then((name) => {
+        setCreatorName(
+          name ||
+          'Ronda member'
+        )
+      })
+      .catch(() => {
+        setCreatorName(
+          'Ronda member'
+        )
+      })
   }, [circle?.created_by])
 
-  // ─── Messages ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!id) return
-    return subscribeMessages(id, setMessages)
-  }, [id])
+
+  /* ─────────────────────────────────────────────
+     JOINED STATE
+  ───────────────────────────────────────────── */
 
   useEffect(() => {
-    const user = getCurrentUser()
-    if (!user || !members.length) {
+    if (!currentUser?.uid) {
       setJoined(false)
       return
     }
-    setJoined(members.some((m) => m.uid === user.uid))
-  }, [members])
 
-  // ─── Weekly Moments ──────────────────────────────────────────────────────
-  const loadWeeklyMoments = async () => {
-    if (!id) return
-    setWeeklyLoading(true)
-    try {
-      await cleanExpiredMoments(id)
-      const data = await getWeeklyMoments(id)
-      setWeeklyMoments(data)
-      if (currentUser) {
-        const posted = await hasPostedThisWeek(id, currentUser.uid)
-        setHasPosted(posted)
-      }
-    } catch (err) {
-      console.error('Failed to load moments:', err)
-    } finally {
-      setWeeklyLoading(false)
-    }
-  }
+    setJoined(
+      members.some((member) => {
+        const uid =
+          member.uid ||
+          member.id ||
+          member.user_id
 
-  const handleUpload = async (file) => {
-    if (!currentUser) return
-    setUploading(true)
-    try {
-      await uploadWeeklyMoment(id, currentUser, file)
-      await loadWeeklyMoments()
-      setHasPosted(true)
-    } catch (err) {
-      alert(err.message)
-    } finally {
-      setUploading(false)
-    }
-  }
+        return (
+          uid ===
+          currentUser.uid
+        )
+      })
+    )
+  }, [
+    members,
+    currentUser,
+  ])
 
-  const handleLike = async (momentId) => {
-    if (!currentUser) return
-    try {
-      await toggleLike(id, momentId, currentUser.uid)
-      await loadWeeklyMoments()
-    } catch (err) {
-      console.error('Failed to like:', err)
-    }
-  }
 
-  const handleDeleteMoment = async (momentId) => {
-    if (!currentUser) return
-    if (!confirm('Delete this moment?')) return
-    try {
-      await deleteWeeklyMoment(id, momentId, currentUser.uid)
-      await loadWeeklyMoments()
-    } catch (err) {
-      alert(err.message)
-    }
-  }
+  /* ─────────────────────────────────────────────
+     LOAD CONNECTIONS
+  ───────────────────────────────────────────── */
 
   useEffect(() => {
-    loadWeeklyMoments()
-  }, [id, currentUser?.uid])
+    async function loadConnections() {
+      if (!currentUser?.uid) {
+        setConnections([])
+        return
+      }
+
+      try {
+        const connectionsQuery =
+          query(
+            collection(
+              db,
+              'connections'
+            ),
+
+            where(
+              'participants',
+              'array-contains',
+              currentUser.uid
+            )
+          )
+
+        const snapshot =
+          await getDocs(
+            connectionsQuery
+          )
+
+        const data =
+          snapshot.docs.map(
+            (connectionDoc) => ({
+              id:
+                connectionDoc.id,
+              ...connectionDoc.data(),
+            })
+          )
+
+        setConnections(data)
+
+      } catch (err) {
+        console.error(
+          'Error loading connections:',
+          err
+        )
+
+        setConnections([])
+      }
+    }
+
+    loadConnections()
+  }, [currentUser])
+
+
+  /* ─────────────────────────────────────────────
+     JOIN
+  ───────────────────────────────────────────── */
 
   async function handleJoin() {
     setError('')
+
     try {
-      let user = getCurrentUser()
-      if (!user) user = await signInWithGoogle()
-      await joinCircle(id, user)
-      const refreshed = await getCircleMembers(id)
-      setMembers(Array.isArray(refreshed) ? refreshed : [])
+      let user =
+        getCurrentUser()
+
+      if (!user) {
+        user =
+          await signInWithGoogle()
+      }
+
+      await joinCircle(
+        id,
+        user
+      )
+
+      await loadMembers()
+
       setJoined(true)
+
     } catch (err) {
-      setError(err?.message || 'Unable to join')
+      setError(
+        err?.message ||
+        'Unable to join this Circle.'
+      )
     }
   }
 
+
+  /* ─────────────────────────────────────────────
+     LEAVE
+  ───────────────────────────────────────────── */
+
   async function handleLeave() {
     setError('')
-    if (!confirm('Are you sure you want to leave this circle?')) return
+
+    const confirmed =
+      window.confirm(
+        'Leave this Circle?'
+      )
+
+    if (!confirmed) return
 
     try {
-      const user = getCurrentUser()
+      const user =
+        getCurrentUser()
+
       if (!user) {
         await signInWithGoogle()
         return
       }
 
-      await leaveCircle(id, user.uid)
-      
-      const refreshed = await getCircleMembers(id)
-      setMembers(Array.isArray(refreshed) ? refreshed : [])
-      setJoined(false)
-    } catch (err) {
-      setError(err?.message || 'Unable to leave circle')
-    }
-  }
-
-  async function handleSend(e) {
-    e.preventDefault()
-    setError('')
-
-    const cleanText = safe(text).trim().slice(0, MSG_MAX)
-    if (!cleanText) return
-
-    const user = getCurrentUser()
-    if (!user) {
-      try {
-        await signInWithGoogle()
-      } catch (err) {
-        setError(err?.message || 'Sign-in required to post')
-        return
-      }
-    }
-
-    const currentUser = getCurrentUser()
-    const member = members.find((m) => m.uid === currentUser?.uid)
-    const authorName = memberLabel(member) !== 'Ronda member'
-      ? memberLabel(member)
-      : currentUser?.username || currentUser?.displayName || 'Ronda member'
-
-    setSending(true)
-    try {
-      await sendMessage(id, {
-        text: cleanText,
-        author_id: currentUser.uid,
-        author_name: authorName,
-        reply_to_message: replyTo?.messageId || null,
-        reply_to_author: replyTo?.authorName || null,
-      })
-
-      setText('')
-      setReplyTo(null)
-    } catch (err) {
-      setError(err?.message || 'Unable to send')
-    } finally {
-      setSending(false)
-    }
-  }
-
-  function handleReply(messageId, authorName) {
-    setReplyTo({ messageId, authorName })
-    document.querySelector('.post-box textarea')?.focus()
-  }
-
-  function cancelReply() {
-    setReplyTo(null)
-  }
-
-  async function handleLike(m) {
-    const user = getCurrentUser()
-    if (!user) {
-      try {
-        await signInWithGoogle()
-      } catch {
-        return
-      }
-    }
-    const uid = getCurrentUser()?.uid
-    if (!uid) return
-
-    const alreadyLiked = Array.isArray(m.liked_by) && m.liked_by.includes(uid)
-
-    setMessages((prev) =>
-      prev.map((msg) => {
-        if (msg.id !== m.id) return msg
-        const likedBy = Array.isArray(msg.liked_by) ? msg.liked_by : []
-        return {
-          ...msg,
-          liked_by: alreadyLiked ? likedBy.filter((u) => u !== uid) : [...likedBy, uid],
-        }
-      })
-    )
-
-    try {
-      await toggleMessageLike(id, m.id, uid)
-    } catch (err) {
-      setMessages((prev) =>
-        prev.map((msg) => (msg.id === m.id ? m : msg))
+      await leaveCircle(
+        id,
+        user.uid
       )
-      setError(err?.message || 'Unable to like')
-    }
-  }
 
-  async function handleDelete(messageId) {
-    if (typeof window !== 'undefined' && !window.confirm('Delete this message?')) return
+      await loadMembers()
 
-    const previous = messages
-    setMessages((prev) => prev.filter((msg) => msg.id !== messageId))
+      setJoined(false)
 
-    try {
-      await deleteMessage(id, messageId)
     } catch (err) {
-      setMessages(previous)
-      setError(err?.message || 'Unable to delete')
+      setError(
+        err?.message ||
+        'Unable to leave this Circle.'
+      )
     }
   }
 
-  async function handleShare() {
-    const url = typeof window !== 'undefined' ? window.location.href : ''
-    const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)
+
+  /* ─────────────────────────────────────────────
+     FIND CONNECTION
+  ───────────────────────────────────────────── */
+
+  function getConnectionWith(targetUid) {
+    return connections.find(
+      (connection) => {
+        const participants =
+          Array.isArray(
+            connection.participants
+          )
+            ? connection.participants
+            : []
+
+        return participants.includes(
+          targetUid
+        )
+      }
+    )
+  }
+
+
+  /* ─────────────────────────────────────────────
+     CONNECT
+  ───────────────────────────────────────────── */
+
+  async function handleConnect(targetUid) {
+    if (
+      !currentUser?.uid ||
+      !targetUid ||
+      currentUser.uid === targetUid
+    ) {
+      return
+    }
+
+    const connectionId =
+      [
+        currentUser.uid,
+        targetUid,
+      ]
+        .sort()
+        .join('_')
 
     try {
-      if (isMobile && navigator.share) {
-        await navigator.share({ title: circle?.title || 'Ronda Circle', url })
-        return
+      const newConnection = {
+        participants: [
+          currentUser.uid,
+          targetUid,
+        ],
+
+        requestedBy:
+          currentUser.uid,
+
+        status:
+          'pending',
+
+        created_at:
+          serverTimestamp(),
+
+        updated_at:
+          serverTimestamp(),
       }
-      await navigator.clipboard.writeText(url)
-      setShared(true)
-      setTimeout(() => setShared(false), 2000)
-    } catch (_) {
-      try {
-        await navigator.clipboard.writeText(url)
-        setShared(true)
-        setTimeout(() => setShared(false), 2000)
-      } catch (_) {}
+
+      await setDoc(
+        doc(
+          db,
+          'connections',
+          connectionId
+        ),
+        newConnection
+      )
+
+      setConnections(
+        (current) => [
+          ...current.filter(
+            (item) =>
+              item.id !==
+              connectionId
+          ),
+
+          {
+            id:
+              connectionId,
+
+            participants: [
+              currentUser.uid,
+              targetUid,
+            ],
+
+            requestedBy:
+              currentUser.uid,
+
+            status:
+              'pending',
+          },
+        ]
+      )
+
+    } catch (err) {
+      console.error(
+        'Error creating connection:',
+        err
+      )
+
+      window.alert(
+        'The connection request could not be sent.'
+      )
     }
   }
+
+
+  /* ─────────────────────────────────────────────
+     ACCEPT
+  ───────────────────────────────────────────── */
+
+  async function handleAccept(
+    connection
+  ) {
+    if (!connection?.id) return
+
+    try {
+      await updateDoc(
+        doc(
+          db,
+          'connections',
+          connection.id
+        ),
+        {
+          status:
+            'connected',
+
+          connected_at:
+            serverTimestamp(),
+
+          updated_at:
+            serverTimestamp(),
+        }
+      )
+
+      setConnections(
+        (current) =>
+          current.map(
+            (item) =>
+              item.id ===
+              connection.id
+                ? {
+                    ...item,
+                    status:
+                      'connected',
+                  }
+                : item
+          )
+      )
+
+    } catch (err) {
+      console.error(
+        'Error accepting connection:',
+        err
+      )
+
+      window.alert(
+        'The connection could not be accepted.'
+      )
+    }
+  }
+
+
+  /* ─────────────────────────────────────────────
+     MEMBER ACTION
+  ───────────────────────────────────────────── */
+
+  function renderMemberAction(
+    targetUid
+  ) {
+    if (!currentUser) {
+      return (
+        <Link
+          href="/login"
+          className="member-action primary"
+        >
+          Connect
+        </Link>
+      )
+    }
+
+    if (
+      currentUser.uid ===
+      targetUid
+    ) {
+      return (
+        <span className="member-action own">
+          You
+        </span>
+      )
+    }
+
+    const connection =
+      getConnectionWith(
+        targetUid
+      )
+
+    if (!connection) {
+      return (
+        <button
+          type="button"
+          className="member-action primary"
+          onClick={() =>
+            handleConnect(
+              targetUid
+            )
+          }
+        >
+          Connect
+        </button>
+      )
+    }
+
+    if (
+      connection.status ===
+        'pending' &&
+      connection.requestedBy ===
+        currentUser.uid
+    ) {
+      return (
+        <span className="member-action pending">
+          Pending
+        </span>
+      )
+    }
+
+    if (
+      connection.status ===
+        'pending' &&
+      connection.requestedBy !==
+        currentUser.uid
+    ) {
+      return (
+        <button
+          type="button"
+          className="member-action primary"
+          onClick={() =>
+            handleAccept(
+              connection
+            )
+          }
+        >
+          Accept
+        </button>
+      )
+    }
+
+    if (
+      connection.status ===
+      'connected'
+    ) {
+      return (
+        <Link
+          href={`/messages/${connection.id}`}
+          className="member-action primary"
+        >
+          Message
+        </Link>
+      )
+    }
+
+    return null
+  }
+
+
+  /* ─────────────────────────────────────────────
+     FILTER MEMBERS
+  ───────────────────────────────────────────── */
+
+  const filteredMembers =
+    useMemo(() => {
+      const cleanSearch =
+        search
+          .trim()
+          .toLowerCase()
+
+      return members.filter(
+        (member) => {
+          const name =
+            memberName(member)
+              .toLowerCase()
+
+          const city =
+            String(
+              member.city ||
+              ''
+            )
+              .trim()
+              .toLowerCase()
+
+          const gender =
+            String(
+              member.gender ||
+              ''
+            )
+              .trim()
+              .toLowerCase()
+
+          const matchesSearch =
+            !cleanSearch ||
+            name.includes(
+              cleanSearch
+            ) ||
+            city.includes(
+              cleanSearch
+            )
+
+          const matchesGender =
+            genderFilter ===
+            'all'
+              ? true
+              : gender ===
+                genderFilter
+
+          return (
+            matchesSearch &&
+            matchesGender
+          )
+        }
+      )
+    }, [
+      members,
+      search,
+      genderFilter,
+    ])
+
+
+  /* ─────────────────────────────────────────────
+     LOADING
+  ───────────────────────────────────────────── */
 
   if (circleLoading) {
     return (
       <>
         <Navbar />
-        <main className="page-loading"><span>Loading circle...</span></main>
+
+        <main className="circle-loading">
+          Loading Circle...
+        </main>
+
+        <Footer />
       </>
     )
   }
+
+
+  /* ─────────────────────────────────────────────
+     NOT FOUND
+  ───────────────────────────────────────────── */
 
   if (!circle) {
     return (
       <>
         <Navbar />
-        <main className="page-loading"><span>Circle not found.</span></main>
+
+        <main className="circle-loading">
+
+          <div>
+            <p>
+              Circle not found.
+            </p>
+
+            <Link
+              href="/circles"
+            >
+              Back to Circles
+            </Link>
+          </div>
+
+        </main>
+
+        <Footer />
       </>
     )
   }
 
-  const type = getCircleType(circle.type)
-  const capacity = Number(circle.capacity || 12)
 
-  const creatorMember = members.find((m) => m.uid === circle.created_by)
-  const displayCreator =
-    creatorMember?.username ||
-    creatorMember?.name ||
-    creatorMember?.displayName ||
-    creatorName ||
-    'Unknown'
+  const circleType =
+    normalizeType(
+      circle.type ||
+      circle.category
+    )
 
-  const visibleMembers = members.slice(0, 8)
-  const extraMembersCount = Math.max(0, members.length - visibleMembers.length)
+  const circleName =
+    buildCircleName(
+      circle
+    )
 
-  const orderedMessages = [...messages].sort((a, b) => {
-    const ta = new Date(a.created_at || a.timestamp || 0).getTime()
-    const tb = new Date(b.created_at || b.timestamp || 0).getTime()
-    return ta - tb
-  })
+  const description =
+    String(
+      circle.description ||
+      ''
+    ).trim()
+
+
+  /* ─────────────────────────────────────────────
+     PAGE
+  ───────────────────────────────────────────── */
 
   return (
     <>
       <Navbar />
-      <main className="page">
-        <div className="container">
-          <div className="header">
-            <div className="header-left">
-              <h1 className="circle-title">{circle.title || 'Untitled circle'}</h1>
-              <p className="header-meta">
-                {type?.label || 'Circle'}
-                {circle.city ? ` · ⚲ ${circle.city}` : ''}
-              </p>
-              <p className="created-by">Created by {displayCreator}</p>
-            </div>
-            {!joined ? (
-              <button onClick={handleJoin} className="btn-join">Join</button>
-            ) : (
-              <div className="joined-actions">
-                <span className="badge-joined">Joined</span>
-                <button onClick={handleLeave} className="btn-leave">Leave</button>
-              </div>
-            )}
-          </div>
 
-          <div className="members-bar">
-            <div className="members-list">
-              {membersLoading ? (
-                <span className="members-empty">Loading members…</span>
-              ) : members.length === 0 ? (
-                <span className="members-empty">No members yet</span>
-              ) : (
-                <span className="members-text">
-                  <span className="members-label">Members: </span>
-                  {visibleMembers.map(memberLabel).join(' • ')}
-                  {extraMembersCount > 0 ? ` • +${extraMembersCount}` : ''}
+      <main className="circle-page">
+
+        <div className="circle-container">
+
+
+          {/* ─────────────────────────────────────
+              BACK
+          ───────────────────────────────────── */}
+
+          <Link
+            href="/circles"
+            className="back-link"
+          >
+            ← Back to Circles
+          </Link>
+
+
+          {/* ─────────────────────────────────────
+              HEADER
+          ───────────────────────────────────── */}
+
+          <section className="circle-header">
+
+            <div className="circle-header-content">
+
+              <div className="circle-header-top">
+
+                <span
+                  className={`circle-type circle-type-${circleType.toLowerCase()}`}
+                >
+                  {circleType}
                 </span>
+
+                <span className="circle-member-count">
+                  {members.length}{' '}
+                  {members.length === 1
+                    ? 'member'
+                    : 'members'}
+                </span>
+
+              </div>
+
+
+              <h1>
+                {circleName}
+              </h1>
+
+
+              <p className="created-by">
+                Created by{' '}
+                <strong>
+                  {creatorName}
+                </strong>
+              </p>
+
+
+              {description && (
+                <p className="circle-description">
+                  {description}
+                </p>
               )}
-            </div>
-            <span className="members-count">{members.length}/{capacity} members</span>
-          </div>
 
-          <p className="be-respectful">Be respectful!</p>
 
-          {/* ─── Weekly Moment ─── */}
-          <div className="weekly-moment">
-            <div className="weekly-moment-header">
-              <h3>Weekly Moment</h3>
-              <p className="weekly-moment-subtitle">One real photo per week. No feed, no pressure.</p>
+              <p className="circle-purpose">
+                Discover people in this Circle,
+                connect privately and start
+                a conversation if they accept.
+              </p>
+
             </div>
 
-            {currentUser && !hasPosted && (
-              <WeeklyMomentUpload onUpload={handleUpload} uploading={uploading} />
-            )}
-            {currentUser && hasPosted && (
-              <p className="weekly-moment-posted">You already shared your weekly moment.</p>
-            )}
 
-            <WeeklyMomentGrid
-              moments={weeklyMoments}
-              loading={weeklyLoading}
-              currentUserId={currentUser?.uid}
-              onLike={handleLike}
-              onDelete={handleDeleteMoment}
-            />
-          </div>
+            <div className="circle-join-area">
 
-          <form className="post-box" onSubmit={handleSend}>
-            {replyTo && (
-              <div className="reply-indicator">
-                <span>Replying to {replyTo.authorName}</span>
-                <button type="button" onClick={cancelReply}>✕</button>
+              {!joined ? (
+                <button
+                  type="button"
+                  className="join-circle"
+                  onClick={
+                    handleJoin
+                  }
+                >
+                  Join Circle
+                </button>
+              ) : (
+                <>
+                  <span className="joined-badge">
+                    Joined
+                  </span>
+
+                  <button
+                    type="button"
+                    className="leave-circle"
+                    onClick={
+                      handleLeave
+                    }
+                  >
+                    Leave
+                  </button>
+                </>
+              )}
+
+            </div>
+
+          </section>
+
+
+          {error && (
+            <p className="circle-error">
+              {error}
+            </p>
+          )}
+
+
+          {/* ─────────────────────────────────────
+              MEMBERS HEADER
+          ───────────────────────────────────── */}
+
+          <section className="members-section">
+
+            <div className="members-heading">
+
+              <div>
+
+                <p className="members-eyebrow">
+                  People in this Circle
+                </p>
+
+                <h2>
+                  Discover members
+                </h2>
+
+              </div>
+
+            </div>
+
+
+            {/* FILTERS */}
+
+            {members.length > 0 && (
+              <div className="members-filters">
+
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(event) =>
+                    setSearch(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Search people..."
+                  className="member-search"
+                />
+
+
+                <select
+                  value={
+                    genderFilter
+                  }
+                  onChange={(event) =>
+                    setGenderFilter(
+                      event.target.value
+                    )
+                  }
+                  className="member-filter"
+                >
+                  <option value="all">
+                    All genders
+                  </option>
+
+                  <option value="female">
+                    Women
+                  </option>
+
+                  <option value="male">
+                    Men
+                  </option>
+                </select>
+
               </div>
             )}
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Message here (180 characters max)"
-              maxLength={MSG_MAX}
-              rows={2}
-            />
-            <div className="post-actions">
-              <span className="counter">{MSG_MAX - safe(text).length} left</span>
-              <button type="submit" className="btn-post" disabled={sending}>
-                {sending ? '…' : 'Post'}
-              </button>
-            </div>
-          </form>
 
-          {error && <p className="error">{error}</p>}
 
-          <div className="messages">
-            {orderedMessages.length === 0 && (
-              <div className="message-empty">
-                <span>No messages yet. Start the conversation.</span>
+            {/* MEMBERS */}
+
+            {membersLoading ? (
+
+              <p className="members-loading">
+                Loading members...
+              </p>
+
+            ) : filteredMembers.length ===
+              0 ? (
+
+              <div className="members-empty">
+                No members match
+                your search.
               </div>
+
+            ) : (
+
+              <div className="members-list">
+
+                {filteredMembers.map(
+                  (member) => {
+
+                    const uid =
+                      member.uid ||
+                      member.id ||
+                      member.user_id ||
+                      ''
+
+                    const name =
+                      memberName(
+                        member
+                      )
+
+                    const photo =
+                      member.photoURL ||
+                      member.photo_url ||
+                      '/point.png'
+
+                    const city =
+                      String(
+                        member.city ||
+                        ''
+                      )
+                        .trim()
+                        .toUpperCase()
+
+                    const gender =
+                      member.gender ||
+                      ''
+
+                    const intentions =
+                      Array.isArray(
+                        member.intentions
+                      )
+                        ? member.intentions
+                        : []
+
+                    const intention =
+                      intentions[0] ||
+                      circleType
+
+                    return (
+                      <article
+                        key={
+                          uid ||
+                          name
+                        }
+                        className="member-row"
+                      >
+
+                        <Link
+                          href={
+                            uid
+                              ? `/members/${uid}`
+                              : '#'
+                          }
+                          className="member-profile"
+                        >
+
+                          <img
+                            src={photo}
+                            alt={name}
+                            className="member-avatar"
+                            onError={(event) => {
+                              event.currentTarget.src =
+                                '/point.png'
+                            }}
+                          />
+
+
+                          <div className="member-info">
+
+                            <div className="member-name-line">
+
+                              <strong>
+                                {name}
+                              </strong>
+
+                              {gender ===
+                                'female' && (
+                                <span className="gender-symbol">
+                                  ♀
+                                </span>
+                              )}
+
+                              {gender ===
+                                'male' && (
+                                <span className="gender-symbol">
+                                  ♂
+                                </span>
+                              )}
+
+                            </div>
+
+
+                            <div className="member-meta">
+
+                              {city && (
+                                <span>
+                                  {city}
+                                </span>
+                              )}
+
+                              {city &&
+                                intention && (
+                                  <span>
+                                    ·
+                                  </span>
+                                )}
+
+                              {intention && (
+                                <span className="member-intention">
+                                  {String(
+                                    intention
+                                  )}
+                                </span>
+                              )}
+
+                            </div>
+
+                          </div>
+
+                        </Link>
+
+
+                        <div className="member-actions">
+                          {uid &&
+                            renderMemberAction(
+                              uid
+                            )}
+                        </div>
+
+                      </article>
+                    )
+                  }
+                )}
+
+              </div>
+
             )}
 
-            {orderedMessages.map((m) => {
-              const replyTarget = m.reply_to_author
-              const when = timeAgo(m.created_at || m.timestamp)
-              const isOwnMessage = m.author_id === currentUid
-              const likedBy = Array.isArray(m.liked_by) ? m.liked_by : []
-              const isLiked = currentUid ? likedBy.includes(currentUid) : false
-              return (
-                <div className="message" key={m.id}>
-                  {replyTarget && (
-                    <p className="replying-to">Replying to {replyTarget}</p>
-                  )}
-                  <div className="message-head">
-                    <span className="author">{safe(m.author_name)}</span>
-                    {when && <span className="message-time">{when}</span>}
-                  </div>
-                  <p className="message-text">{safe(m.text)}</p>
-                  <div className="message-actions">
-                    <button
-                      className={`like-btn${isLiked ? ' liked' : ''}`}
-                      onClick={() => handleLike(m)}
-                      aria-label="Like"
-                    >
-                      {isLiked ? '♥' : '♡'}
-                      {likedBy.length > 0 && <span className="like-count">{likedBy.length}</span>}
-                    </button>
-                    {isOwnMessage ? (
-                      <button
-                        className="delete-btn"
-                        onClick={() => handleDelete(m.id)}
-                      >
-                        Delete
-                      </button>
-                    ) : (
-                      <button
-                        className="reply-btn"
-                        onClick={() => handleReply(m.id, safe(m.author_name))}
-                      >
-                        Reply
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+          </section>
 
-          {/* ─── BOTTOM LINKS – CORAIL CENTRÉ ─── */}
+
+          {/* ─────────────────────────────────────
+              BOTTOM
+          ───────────────────────────────────── */}
+
           <div className="circle-bottom">
-            <Link href="/" className="circle-bottom-item">Back home</Link>
-            <button onClick={handleShare} className="circle-bottom-item">
-              Share group{shared ? ' · Copied!' : ''}
-            </button>
-            <Link href="/terms" className="circle-bottom-item">Terms</Link>
+
+            <Link
+              href="/circles"
+            >
+              Discover other Circles
+            </Link>
+
+            <Link
+              href="/members"
+            >
+              Discover people
+            </Link>
+
           </div>
+
         </div>
 
-        <style jsx>{`
-          .page {
-            min-height: 100vh;
-            background: #fff8f2;
-            padding: calc(clamp(58px, 7vw, 70px) + 18px) 16px 28px;
-            display: flex;
-            justify-content: center;
-            font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-            color: #1c1917;
-          }
-
-          .page-loading {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #fff8f2;
-            color: #9a918b;
-            padding-top: clamp(58px, 7vw, 70px);
-          }
-
-          .container {
-            max-width: 560px;
-            width: 100%;
-            background: #ffffff;
-            border: 1.5px solid #e8e0d8;
-            border-radius: 18px;
-            padding: 0 18px 0;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.02);
-          }
-
-          .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 18px 0 12px;
-            border-bottom: 1px solid #ede8e2;
-            gap: 12px;
-          }
-
-          .header-left {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-          }
-
-          .circle-title {
-            font-size: 1.35rem;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            color: #1c1917;
-            margin: 0;
-          }
-
-          .header-meta {
-            font-size: 0.85rem;
-            color: #706965;
-            margin: 0;
-          }
-
-          .created-by {
-            font-size: 0.8rem;
-            color: #9a918b;
-            margin: 2px 0 0;
-          }
-
-          .btn-join {
-            background: #ff6b5a;
-            color: #fff;
-            border: none;
-            border-radius: 999px;
-            padding: 8px 24px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-            flex-shrink: 0;
-          }
-
-          .btn-join:hover {
-            background: #f45542;
-          }
-
-          .joined-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-          }
-
-          .badge-joined {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #065f46;
-            background: #d1fae5;
-            padding: 6px 18px;
-            border-radius: 999px;
-            flex-shrink: 0;
-          }
-
-          .btn-leave {
-            background: transparent;
-            color: #9A918B;
-            border: 1px solid #E9DDD4;
-            border-radius: 999px;
-            padding: 6px 16px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-          }
-
-          .btn-leave:hover {
-            background: #FEE2E2;
-            border-color: #DC2626;
-            color: #DC2626;
-          }
-
-          .members-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 0;
-            border-bottom: 1px solid #ede8e2;
-            flex-wrap: wrap;
-          }
-
-          .members-list {
-            flex: 1;
-            min-width: 0;
-          }
-
-          .members-text {
-            font-size: 0.85rem;
-            color: #1c1917;
-            line-height: 1.4;
-          }
-
-          .members-label {
-            color: #9a918b;
-          }
-
-          .members-empty {
-            font-size: 0.85rem;
-            color: #b5ada6;
-          }
-
-          .members-count {
-            font-size: 0.8rem;
-            color: #706965;
-            white-space: nowrap;
-          }
-
-          .be-respectful {
-            text-align: center;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: #706965;
-            padding: 8px 0 2px;
-            margin: 0;
-          }
-
-          /* ─── Weekly Moment ────────────────────────────────────────────────────── */
-          .weekly-moment {
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid #ede8e2;
-          }
-
-          .weekly-moment-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            gap: 8px;
-          }
-
-          .weekly-moment-header h3 {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #1c1917;
-            margin: 0;
-          }
-
-          .weekly-moment-subtitle {
-            font-size: 0.8rem;
-            color: #9a918b;
-            margin: 0;
-          }
-
-          .weekly-moment-posted {
-            color: #059669;
-            font-size: 0.85rem;
-            padding: 8px 0;
-          }
-
-          .post-box {
-            margin: 8px 0 12px;
-            padding: 6px 0;
-            border: none;
-            border-bottom: 1.5px dashed rgba(255, 107, 90, 0.3);
-            border-radius: 0;
-            background: transparent;
-          }
-
-          .reply-indicator {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4px 12px;
-            background: #f5f0eb;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            font-size: 0.8rem;
-            color: #706965;
-          }
-
-          .reply-indicator button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-            color: #706965;
-            padding: 0 4px;
-          }
-
-          .post-box textarea {
-            width: 100%;
-            border: none;
-            outline: none;
-            resize: none;
-            font-family: inherit;
-            font-size: 0.92rem;
-            color: #1c1917;
-            background: transparent;
-            min-height: 32px;
-            max-height: 90px;
-            padding: 6px 0;
-          }
-
-          .post-box textarea::placeholder {
-            color: #b5ada6;
-          }
-
-          .post-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 6px;
-          }
-
-          .counter {
-            font-size: 0.75rem;
-            color: #b5ada6;
-          }
-
-          .btn-post {
-            background: #ff6b5a;
-            color: #fff;
-            border: none;
-            border-radius: 999px;
-            padding: 6px 28px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-          }
-
-          .btn-post:hover {
-            background: #f45542;
-          }
-
-          .btn-post:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-          }
-
-          .error {
-            color: #dc2626;
-            font-size: 0.85rem;
-            padding: 4px 0 4px;
-          }
-
-          .messages {
-            flex: 1;
-            padding: 2px 0 8px;
-            min-height: 140px;
-            display: flex;
-            flex-direction: column;
-          }
-
-          .message-empty {
-            text-align: center;
-            color: #b5ada6;
-            font-size: 0.9rem;
-            padding: 32px 0;
-          }
-
-          .message {
-            padding: 8px 0;
-            margin: 0;
-            border: none;
-            border-bottom: 1px solid #eee3dc;
-            border-radius: 0;
-            background: transparent;
-          }
-
-          .message:last-child {
-            border-bottom: none;
-          }
-
-          .replying-to {
-            margin: 0 0 2px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            color: #ff6b5a;
-          }
-
-          .message-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 2px;
-            gap: 8px;
-          }
-
-          .author {
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: #1c1917;
-          }
-
-          .message-time {
-            font-size: 0.7rem;
-            color: #b5ada6;
-            white-space: nowrap;
-          }
-
-          .message-text {
-            margin: 0;
-            font-size: 0.9rem;
-            line-height: 1.28;
-            color: #1c1917;
-            white-space: pre-wrap;
-            word-break: break-word;
-          }
-
-          .message-actions {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 2px;
-          }
-
-          .like-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-            font-size: 0.82rem;
-            color: #b5ada6;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            margin-right: auto;
-            transition: color 0.15s, transform 0.1s;
-          }
-
-          .like-btn:active {
-            transform: scale(1.15);
-          }
-
-          .like-btn.liked {
-            color: #ff6b5a;
-          }
-
-          .like-count {
-            font-size: 0.7rem;
-            color: #9a918b;
-          }
-
-          .reply-btn {
-            font-size: 0.72rem;
-            color: #9a918b;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            transition: color 0.2s;
-          }
-
-          .reply-btn:hover {
-            color: #ff6b5a;
-          }
-
-          .delete-btn {
-            font-size: 0.72rem;
-            color: #b5ada6;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            transition: color 0.2s;
-          }
-
-          .delete-btn:hover {
-            color: #dc2626;
-          }
-
-          /* ─── BOTTOM LINKS – CORAIL CENTRÉ ─── */
-          .circle-bottom {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0;
-            padding: 20px 0;
-            border-top: 1px solid #ede8e2;
-          }
-
-          .circle-bottom-item {
-            appearance: none;
-            -webkit-appearance: none;
-            display: inline-flex;
-            align-items: center;
-            background: transparent !important;
-            border: none !important;
-            color: #FF6B5A !important;
-            text-decoration: none !important;
-            font-family: inherit;
-            font-size: 0.83rem;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-            cursor: pointer;
-            padding: 0;
-          }
-
-          .circle-bottom-item:hover {
-            color: #F45542 !important;
-          }
-
-          .circle-bottom-item:not(:last-child)::after {
-            content: "•";
-            color: #D9CFC7;
-            margin: 0 18px;
-          }
-
-          @media (max-width: 640px) {
-            .page {
-              padding: calc(clamp(58px, 7vw, 70px) + 10px) 10px 18px;
-            }
-
-            .container {
-              padding: 0 12px 0;
-              border-radius: 14px;
-            }
-
-            .header {
-              padding: 14px 0 10px;
-            }
-
-            .circle-title {
-              font-size: 1.15rem;
-            }
-
-            .btn-join {
-              padding: 6px 18px;
-              font-size: 0.8rem;
-            }
-
-            .post-box textarea {
-              font-size: 0.88rem;
-              min-height: 30px;
-            }
-
-            .message-text {
-              font-size: 0.86rem;
-            }
-
-            .circle-bottom {
-              justify-content: center;
-              flex-wrap: wrap;
-              gap: 8px;
-            }
-
-            .circle-bottom-item:not(:last-child)::after {
-              margin: 0 10px;
-            }
-          }
-
-          @media (max-width: 400px) {
-            .container {
-              padding: 0 10px 0;
-            }
-
-            .circle-title {
-              font-size: 1.05rem;
-            }
-
-            .header {
-              flex-wrap: wrap;
-              gap: 6px;
-            }
-          }
-        `}</style>
       </main>
+
+      <Footer />
+
+
+      <style jsx global>{`
+
+        .circle-page {
+          min-height:
+            100vh;
+
+          background:
+            #FFF8F2;
+
+          padding:
+            145px 20px 70px;
+
+          box-sizing:
+            border-box;
+
+          font-family:
+            "Avenir Next",
+            "Segoe UI",
+            Inter,
+            system-ui,
+            sans-serif;
+
+          color:
+            #2B2725;
+        }
+
+
+        .circle-container {
+          width:
+            100%;
+
+          max-width:
+            900px;
+
+          margin:
+            0 auto;
+        }
+
+
+        .circle-loading {
+          min-height:
+            100vh;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          background:
+            #FFF8F2;
+
+          padding:
+            120px 20px 40px;
+
+          box-sizing:
+            border-box;
+
+          text-align:
+            center;
+
+          color:
+            #817A75;
+        }
+
+
+        .circle-loading a {
+          color:
+            #FF6B5A;
+
+          text-decoration:
+            none;
+        }
+
+
+        /* BACK */
+
+        .back-link {
+          display:
+            inline-flex;
+
+          margin-bottom:
+            18px;
+
+          color:
+            #817A75;
+
+          font-size:
+            0.78rem;
+
+          text-decoration:
+            none;
+        }
+
+
+        .back-link:hover {
+          color:
+            #FF6B5A;
+        }
+
+
+        /* HEADER */
+
+        .circle-header {
+          display:
+            flex;
+
+          align-items:
+            flex-start;
+
+          justify-content:
+            space-between;
+
+          gap:
+            30px;
+
+          padding:
+            28px;
+
+          border:
+            1px solid #E9DDD4;
+
+          border-radius:
+            20px;
+
+          background:
+            #FFFFFF;
+
+          margin-bottom:
+            18px;
+        }
+
+
+        .circle-header-content {
+          flex:
+            1;
+
+          min-width:
+            0;
+        }
+
+
+        .circle-header-top {
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          gap:
+            10px;
+
+          margin-bottom:
+            12px;
+        }
+
+
+        .circle-type {
+          display:
+            inline-flex;
+
+          padding:
+            5px 11px;
+
+          border-radius:
+            999px;
+
+          background:
+            #FFF0EB;
+
+          color:
+            #FF604E;
+
+          font-size:
+            0.7rem;
+
+          font-weight:
+            700;
+        }
+
+
+        .circle-type-date {
+          background:
+            #FFF0F6;
+
+          color:
+            #D94D87;
+        }
+
+
+        .circle-type-business {
+          background:
+            #EDF5FF;
+
+          color:
+            #397DC1;
+        }
+
+
+        .circle-member-count {
+          color:
+            #9A918B;
+
+          font-size:
+            0.75rem;
+        }
+
+
+        .circle-header h1 {
+          margin:
+            0 0 8px;
+
+          font-size:
+            clamp(
+              1.5rem,
+              4vw,
+              2rem
+            );
+
+          line-height:
+            1.15;
+
+          letter-spacing:
+            -0.035em;
+        }
+
+
+        .created-by {
+          margin:
+            0 0 16px;
+
+          font-size:
+            0.76rem;
+
+          color:
+            #9A918B;
+        }
+
+
+        .created-by strong {
+          color:
+            #706965;
+        }
+
+
+        .circle-description {
+          max-width:
+            620px;
+
+          margin:
+            0 0 12px;
+
+          font-size:
+            0.9rem;
+
+          line-height:
+            1.6;
+
+          color:
+            #5F5A56;
+        }
+
+
+        .circle-purpose {
+          max-width:
+            620px;
+
+          margin:
+            0;
+
+          font-size:
+            0.77rem;
+
+          line-height:
+            1.5;
+
+          color:
+            #9A918B;
+        }
+
+
+        /* JOIN */
+
+        .circle-join-area {
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          gap:
+            8px;
+
+          flex-shrink:
+            0;
+        }
+
+
+        .join-circle {
+          padding:
+            9px 20px;
+
+          border:
+            none;
+
+          border-radius:
+            999px;
+
+          background:
+            #FF6B5A;
+
+          color:
+            #FFFFFF;
+
+          font-family:
+            inherit;
+
+          font-size:
+            0.8rem;
+
+          font-weight:
+            650;
+
+          cursor:
+            pointer;
+        }
+
+
+        .join-circle:hover {
+          background:
+            #F45542;
+        }
+
+
+        .joined-badge {
+          padding:
+            7px 14px;
+
+          border-radius:
+            999px;
+
+          background:
+            #EAF7F0;
+
+          color:
+            #458467;
+
+          font-size:
+            0.75rem;
+
+          font-weight:
+            650;
+        }
+
+
+        .leave-circle {
+          border:
+            1px solid #E9DDD4;
+
+          border-radius:
+            999px;
+
+          background:
+            transparent;
+
+          color:
+            #9A918B;
+
+          padding:
+            7px 13px;
+
+          font-family:
+            inherit;
+
+          font-size:
+            0.72rem;
+
+          cursor:
+            pointer;
+        }
+
+
+        .leave-circle:hover {
+          color:
+            #D85B50;
+
+          border-color:
+            #E7B7B1;
+        }
+
+
+        .circle-error {
+          margin:
+            0 0 16px;
+
+          color:
+            #C94E45;
+
+          font-size:
+            0.8rem;
+        }
+
+
+        /* MEMBERS */
+
+        .members-section {
+          padding:
+            28px;
+
+          border:
+            1px solid #E9DDD4;
+
+          border-radius:
+            20px;
+
+          background:
+            #FFFFFF;
+        }
+
+
+        .members-heading {
+          margin-bottom:
+            18px;
+        }
+
+
+        .members-eyebrow {
+          margin:
+            0 0 4px;
+
+          color:
+            #FF6B5A;
+
+          font-size:
+            0.68rem;
+
+          font-weight:
+            700;
+
+          letter-spacing:
+            0.1em;
+
+          text-transform:
+            uppercase;
+        }
+
+
+        .members-heading h2 {
+          margin:
+            0;
+
+          font-size:
+            1.2rem;
+
+          letter-spacing:
+            -0.02em;
+        }
+
+
+        /* FILTERS */
+
+        .members-filters {
+          display:
+            flex;
+
+          gap:
+            10px;
+
+          margin-bottom:
+            18px;
+        }
+
+
+        .member-search {
+          flex:
+            1;
+
+          height:
+            42px;
+
+          padding:
+            0 15px;
+
+          box-sizing:
+            border-box;
+
+          border:
+            1px solid #E5E1DD;
+
+          border-radius:
+            999px;
+
+          outline:
+            none;
+
+          font-family:
+            inherit;
+
+          font-size:
+            0.8rem;
+        }
+
+
+        .member-filter {
+          height:
+            42px;
+
+          min-width:
+            140px;
+
+          padding:
+            0 15px;
+
+          border:
+            1px solid #E5E1DD;
+
+          border-radius:
+            999px;
+
+          background:
+            #FFFFFF;
+
+          font-family:
+            inherit;
+
+          color:
+            #5F5A56;
+        }
+
+
+        /* MEMBERS LIST */
+
+        .members-list {
+          display:
+            flex;
+
+          flex-direction:
+            column;
+
+          gap:
+            7px;
+        }
+
+
+        .member-row {
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            space-between;
+
+          gap:
+            16px;
+
+          padding:
+            10px 12px;
+
+          border-radius:
+            11px;
+
+          background:
+            #F7FAFC;
+        }
+
+
+        .member-row:nth-child(even) {
+          background:
+            #FCFDFD;
+        }
+
+
+        .member-profile {
+          flex:
+            1;
+
+          min-width:
+            0;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          gap:
+            11px;
+
+          color:
+            inherit;
+
+          text-decoration:
+            none;
+        }
+
+
+        .member-avatar {
+          width:
+            42px;
+
+          height:
+            42px;
+
+          flex:
+            0 0 42px;
+
+          border-radius:
+            50%;
+
+          object-fit:
+            cover;
+
+          background:
+            #FFFFFF;
+        }
+
+
+        .member-info {
+          min-width:
+            0;
+        }
+
+
+        .member-name-line {
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          gap:
+            4px;
+
+          margin-bottom:
+            2px;
+        }
+
+
+        .member-name-line strong {
+          font-size:
+            0.85rem;
+
+          color:
+            #343434;
+        }
+
+
+        .gender-symbol {
+          color:
+            #9A918B;
+
+          font-size:
+            0.75rem;
+        }
+
+
+        .member-meta {
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          gap:
+            5px;
+
+          font-size:
+            0.72rem;
+
+          color:
+            #817A75;
+        }
+
+
+        .member-intention {
+          color:
+            #FF604E;
+
+          font-weight:
+            600;
+        }
+
+
+        .member-actions {
+          flex-shrink:
+            0;
+        }
+
+
+        .member-action {
+          min-width:
+            88px;
+
+          display:
+            inline-flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          padding:
+            7px 14px;
+
+          border-radius:
+            999px;
+
+          box-sizing:
+            border-box;
+
+          font-family:
+            inherit;
+
+          font-size:
+            0.72rem;
+
+          font-weight:
+            650;
+
+          text-decoration:
+            none;
+        }
+
+
+        .member-action.primary {
+          border:
+            none;
+
+          background:
+            #FF6B5A;
+
+          color:
+            #FFFFFF;
+
+          cursor:
+            pointer;
+        }
+
+
+        .member-action.primary:hover {
+          background:
+            #F45542;
+        }
+
+
+        .member-action.pending,
+        .member-action.own {
+          background:
+            #F3EEEA;
+
+          color:
+            #817A75;
+        }
+
+
+        .members-loading,
+        .members-empty {
+          padding:
+            35px 0;
+
+          text-align:
+            center;
+
+          color:
+            #9A918B;
+
+          font-size:
+            0.82rem;
+        }
+
+
+        /* BOTTOM */
+
+        .circle-bottom {
+          display:
+            flex;
+
+          justify-content:
+            center;
+
+          gap:
+            24px;
+
+          padding:
+            24px 0 0;
+        }
+
+
+        .circle-bottom a {
+          color:
+            #FF6B5A;
+
+          text-decoration:
+            none;
+
+          font-size:
+            0.78rem;
+        }
+
+
+        /* MOBILE */
+
+        @media (max-width: 640px) {
+
+          .circle-page {
+            padding:
+              130px 12px 45px;
+          }
+
+
+          .circle-header {
+            flex-direction:
+              column;
+
+            padding:
+              20px;
+          }
+
+
+          .circle-join-area {
+            width:
+              100%;
+          }
+
+
+          .join-circle {
+            width:
+              100%;
+          }
+
+
+          .members-section {
+            padding:
+              18px 14px;
+          }
+
+
+          .members-filters {
+            display:
+              grid;
+
+            grid-template-columns:
+              1fr;
+
+            gap:
+              8px;
+          }
+
+
+          .member-filter {
+            width:
+              100%;
+          }
+
+
+          .member-row {
+            gap:
+              9px;
+
+            padding:
+              9px;
+          }
+
+
+          .member-avatar {
+            width:
+              36px;
+
+            height:
+              36px;
+
+            flex-basis:
+              36px;
+          }
+
+
+          .member-name-line strong {
+            font-size:
+              0.8rem;
+          }
+
+
+          .member-meta {
+            font-size:
+              0.66rem;
+          }
+
+
+          .member-action {
+            min-width:
+              72px;
+
+            padding:
+              6px 10px;
+
+            font-size:
+              0.67rem;
+          }
+
+
+          .circle-bottom {
+            gap:
+              14px;
+
+            flex-wrap:
+              wrap;
+          }
+
+        }
+
+      `}</style>
+
     </>
   )
 }

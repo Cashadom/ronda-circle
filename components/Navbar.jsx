@@ -57,10 +57,10 @@ export default function Navbar() {
           <div className="ronda-desktop-nav">
 
             <Link
-              href="/members"
+              href="/circles"
               className="ronda-nav-link"
             >
-              People
+              Circles
             </Link>
 
             {user && (
@@ -100,10 +100,10 @@ export default function Navbar() {
         <div className="ronda-mobile-nav">
 
           <Link
-            href="/members"
+            href="/circles"
             className="ronda-mobile-link"
           >
-            People
+            Circles
           </Link>
 
           {user && (
@@ -486,7 +486,7 @@ export default function Navbar() {
 
           /*
             Deuxième ligne :
-            PEOPLE / CONNECTIONS / MESSAGES
+            CIRCLES / CONNECTIONS / MESSAGES
           */
 
           .ronda-mobile-nav {
