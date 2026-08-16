@@ -1,43 +1,74 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { collection, getDocs } from 'firebase/firestore'
+import {
+  collection,
+  getDocs,
+} from 'firebase/firestore'
+
 import { db } from '@/lib/firebase'
+import { onAuthChange } from '@/lib/auth'
+
 import './CitiesMarquee.css'
 
-const SWITCH_INTERVAL = 5 * 60 * 1000
+const SWITCH_INTERVAL =
+  5 * 60 * 1000
 
-function getTimestampValue(timestamp) {
-  if (!timestamp) return 0
 
-  if (timestamp?.toDate) {
-    return timestamp.toDate().getTime()
+function getTimestampValue(
+  timestamp
+) {
+  if (!timestamp) {
+    return 0
   }
 
-  const date = new Date(timestamp)
+  if (timestamp?.toDate) {
+    return timestamp
+      .toDate()
+      .getTime()
+  }
 
-  return Number.isNaN(date.getTime())
+  const date =
+    new Date(timestamp)
+
+  return Number.isNaN(
+    date.getTime()
+  )
     ? 0
     : date.getTime()
 }
 
-function getTimeAgo(timestamp) {
-  const timestampValue =
-    getTimestampValue(timestamp)
 
-  if (!timestampValue) return ''
+function getTimeAgo(
+  timestamp
+) {
+  const timestampValue =
+    getTimestampValue(
+      timestamp
+    )
+
+  if (!timestampValue) {
+    return ''
+  }
 
   const diff =
-    Date.now() - timestampValue
+    Date.now() -
+    timestampValue
 
   const minutes =
-    Math.floor(diff / 60000)
+    Math.floor(
+      diff / 60000
+    )
 
   const hours =
-    Math.floor(diff / 3600000)
+    Math.floor(
+      diff / 3600000
+    )
 
   const days =
-    Math.floor(diff / 86400000)
+    Math.floor(
+      diff / 86400000
+    )
 
   if (minutes < 1) {
     return 'just now'
@@ -58,7 +89,10 @@ function getTimeAgo(timestamp) {
   return `${days} days ago`
 }
 
-function normalizeConnectionPurpose(value = '') {
+
+function normalizeConnectionPurpose(
+  value = ''
+) {
   const item =
     String(value)
       .trim()
@@ -95,7 +129,9 @@ function normalizeConnectionPurpose(value = '') {
   return ''
 }
 
+
 export default function CitiesMarquee() {
+
   const cities = [
     '🗺 London',
     '🗺 New York',
@@ -112,58 +148,129 @@ export default function CitiesMarquee() {
     '🗺 Chennai',
   ]
 
+
   const doubled = [
     ...cities,
     ...cities,
   ]
 
-  const [latestMember, setLatestMember] =
-    useState(null)
+
+  const [
+    currentUser,
+    setCurrentUser,
+  ] = useState(undefined)
+
+
+  const [
+    latestMember,
+    setLatestMember,
+  ] = useState(null)
+
 
   const [
     latestConnection,
     setLatestConnection,
   ] = useState(null)
 
+
   const [
     activityType,
     setActivityType,
   ] = useState('member')
 
+
+  /* ─────────────────────────────────────────────
+     AUTH
+  ───────────────────────────────────────────── */
+
   useEffect(() => {
+    const unsub =
+      onAuthChange(
+        (user) => {
+          setCurrentUser(
+            user || null
+          )
+        }
+      )
+
+    return () => unsub()
+
+  }, [])
+
+
+  /* ─────────────────────────────────────────────
+     ACTIVITY
+     
+     /users and /connections remain PRIVATE.
+     Anonymous visitors simply see the cities.
+  ───────────────────────────────────────────── */
+
+  useEffect(() => {
+
+    if (
+      currentUser ===
+      undefined
+    ) {
+      return
+    }
+
+
+    if (!currentUser) {
+      setLatestMember(null)
+      setLatestConnection(null)
+
+      return
+    }
+
+
     async function loadActivity() {
+
       try {
+
         const [
           usersSnapshot,
           connectionsSnapshot,
-        ] = await Promise.all([
-          getDocs(
-            collection(db, 'users')
-          ),
+        ] =
+          await Promise.all([
+            getDocs(
+              collection(
+                db,
+                'users'
+              )
+            ),
 
-          getDocs(
-            collection(
-              db,
-              'connections'
-            )
-          ),
-        ])
+            getDocs(
+              collection(
+                db,
+                'connections'
+              )
+            ),
+          ])
+
 
         const users =
           usersSnapshot.docs.map(
             (userDoc) => ({
-              id: userDoc.id,
+              id:
+                userDoc.id,
+
               ...userDoc.data(),
             })
           )
 
+
         const usersById =
           new Map(
-            users.map((user) => [
-              user.id,
-              user,
-            ])
+            users.map(
+              (user) => [
+                user.id,
+                user,
+              ]
+            )
           )
+
+
+        /* NEW MEMBERS */
 
         const membersWithDate =
           users.filter(
@@ -172,6 +279,7 @@ export default function CitiesMarquee() {
                 user.created_at
               ) > 0
           )
+
 
         membersWithDate.sort(
           (a, b) =>
@@ -183,10 +291,14 @@ export default function CitiesMarquee() {
             )
         )
 
+
         setLatestMember(
           membersWithDate[0] ||
           null
         )
+
+
+        /* CONNECTIONS */
 
         const connected =
           connectionsSnapshot.docs
@@ -204,8 +316,10 @@ export default function CitiesMarquee() {
                 'connected'
             )
 
+
         connected.sort(
           (a, b) => {
+
             const aTime =
               getTimestampValue(
                 a.connected_at ||
@@ -218,20 +332,28 @@ export default function CitiesMarquee() {
                 b.updated_at
               )
 
-            return bTime - aTime
+            return (
+              bTime -
+              aTime
+            )
           }
         )
+
 
         const newestConnection =
           connected[0]
 
-        if (!newestConnection) {
+
+        if (
+          !newestConnection
+        ) {
           setLatestConnection(
             null
           )
 
           return
         }
+
 
         let purpose =
           normalizeConnectionPurpose(
@@ -240,19 +362,19 @@ export default function CitiesMarquee() {
             newestConnection.category
           )
 
+
         /*
-          Anciennes connexions :
-          si le type n'était pas encore
-          enregistré dans /connections,
-          on regarde l'intention du profil
-          ayant envoyé la demande.
-        */
+         * Legacy connections:
+         * derive purpose from requester profile.
+         */
 
         if (!purpose) {
+
           const requester =
             usersById.get(
               newestConnection.requestedBy
             )
+
 
           const requesterIntentions =
             Array.isArray(
@@ -261,11 +383,13 @@ export default function CitiesMarquee() {
               ? requester.intentions
               : []
 
+
           purpose =
             normalizeConnectionPurpose(
               requesterIntentions[0]
             )
         }
+
 
         setLatestConnection({
           ...newestConnection,
@@ -277,15 +401,20 @@ export default function CitiesMarquee() {
             newestConnection.updated_at,
         })
 
+
       } catch (error) {
+
         console.error(
           'Error loading Ronda activity:',
           error
         )
+
       }
     }
 
+
     loadActivity()
+
 
     const refreshInterval =
       setInterval(
@@ -293,28 +422,53 @@ export default function CitiesMarquee() {
         SWITCH_INTERVAL
       )
 
+
     return () =>
       clearInterval(
         refreshInterval
       )
-  }, [])
+
+  }, [currentUser])
+
+
+  /* ─────────────────────────────────────────────
+     SWITCH MEMBER / CONNECTION
+  ───────────────────────────────────────────── */
 
   useEffect(() => {
+
+    if (!currentUser) {
+      return
+    }
+
+
     const switchInterval =
-      setInterval(() => {
-        setActivityType(
-          (current) =>
-            current === 'member'
-              ? 'connection'
-              : 'member'
-        )
-      }, SWITCH_INTERVAL)
+      setInterval(
+        () => {
+
+          setActivityType(
+            (current) =>
+              current === 'member'
+                ? 'connection'
+                : 'member'
+          )
+
+        },
+        SWITCH_INTERVAL
+      )
+
 
     return () =>
       clearInterval(
         switchInterval
       )
-  }, [])
+
+  }, [currentUser])
+
+
+  /* ─────────────────────────────────────────────
+     ACTIVITY VALUES
+  ───────────────────────────────────────────── */
 
   const memberName =
     latestMember?.displayName ||
@@ -322,14 +476,22 @@ export default function CitiesMarquee() {
     latestMember?.username ||
     'A new member'
 
+
   const canShowMember =
-    Boolean(latestMember)
+    Boolean(
+      latestMember
+    )
+
 
   const canShowConnection =
-    Boolean(latestConnection)
+    Boolean(
+      latestConnection
+    )
+
 
   let visibleActivity =
     activityType
+
 
   if (
     visibleActivity ===
@@ -341,6 +503,7 @@ export default function CitiesMarquee() {
       'connection'
   }
 
+
   if (
     visibleActivity ===
       'connection' &&
@@ -351,6 +514,11 @@ export default function CitiesMarquee() {
       'member'
   }
 
+
+  /* ─────────────────────────────────────────────
+     PAGE
+  ───────────────────────────────────────────── */
+
   return (
     <section className="cities-marquee">
 
@@ -358,22 +526,32 @@ export default function CitiesMarquee() {
         Growing city by city
       </p>
 
+
       <div className="marquee-track">
+
         {doubled.map(
           (city, i) => (
+
             <span
               key={`${city}-${i}`}
               className="marquee-city"
             >
               {city}
             </span>
+
           )
         )}
+
       </div>
 
-      {visibleActivity ===
-        'member' &&
+
+      {/* ACTIVITY ONLY FOR SIGNED-IN MEMBERS */}
+
+      {currentUser &&
+        visibleActivity ===
+          'member' &&
         latestMember && (
+
           <div className="marquee-activity">
 
             <span className="activity-dot" />
@@ -395,25 +573,34 @@ export default function CitiesMarquee() {
           </div>
         )}
 
-      {visibleActivity ===
-        'connection' &&
+
+      {currentUser &&
+        visibleActivity ===
+          'connection' &&
         latestConnection && (
+
           <div className="marquee-activity">
 
             <span className="activity-dot" />
 
             <span className="activity-text">
+
               Two people connected
+
               {latestConnection.purpose
                 ? ` for ${latestConnection.purpose}`
                 : ''}
+
               {' '}
+
             </span>
 
             <span className="activity-time">
+
               {getTimeAgo(
                 latestConnection.activityDate
               )}
+
             </span>
 
           </div>

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import CircleCard from './CircleCard'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { onAuthChange } from '@/lib/auth'
 import './CircleGrid.css'
 
 const USERS_PER_PAGE = 100
@@ -52,6 +53,8 @@ function normalizeIntentions(values = []) {
 }
 
 export default function CircleGrid() {
+  const [currentUser, setCurrentUser] = useState(undefined)
+
   const [users, setUsers] = useState([])
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState(false)
@@ -61,8 +64,45 @@ export default function CircleGrid() {
   const [intentionFilter, setIntentionFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
 
+
+  /* ─────────────────────────────────────────────
+     AUTH
+  ───────────────────────────────────────────── */
+
   useEffect(() => {
+    const unsub = onAuthChange((user) => {
+      setCurrentUser(user || null)
+    })
+
+    return () => unsub()
+  }, [])
+
+
+  /* ─────────────────────────────────────────────
+     USERS
+     Only signed-in members may read /users.
+  ───────────────────────────────────────────── */
+
+  useEffect(() => {
+    if (currentUser === undefined) {
+      return
+    }
+
+    /*
+     * Anonymous visitors must NOT attempt
+     * to read the private /users collection.
+     */
+    if (!currentUser) {
+      setUsers([])
+      setError(false)
+      setLoaded(true)
+      return
+    }
+
     async function fetchUsers() {
+      setLoaded(false)
+      setError(false)
+
       try {
         const snapshot = await getDocs(
           collection(db, 'users')
@@ -76,15 +116,19 @@ export default function CircleGrid() {
             user.photo_url ||
             ''
 
-          const intentions = normalizeIntentions(
-            Array.isArray(user.intentions)
-              ? user.intentions
-              : []
-          )
+          const intentions =
+            normalizeIntentions(
+              Array.isArray(user.intentions)
+                ? user.intentions
+                : []
+            )
 
           return {
             id: doc.id,
-            uid: user.uid || doc.id,
+
+            uid:
+              user.uid ||
+              doc.id,
 
             name:
               user.displayName ||
@@ -93,37 +137,51 @@ export default function CircleGrid() {
               'Ronda member',
 
             photo_url:
-              realPhoto || '/point.png',
+              realPhoto ||
+              '/point.png',
 
             photoURL:
-              realPhoto || '/point.png',
+              realPhoto ||
+              '/point.png',
 
             hasRealPhoto:
               Boolean(realPhoto),
 
             city:
-              user.city || '',
+              user.city ||
+              '',
 
             gender:
-              user.gender || '',
+              user.gender ||
+              '',
 
             intentions,
           }
         })
 
-        const sortedUsers = [...data].sort((a, b) => {
-          if (a.hasRealPhoto && !b.hasRealPhoto) {
-            return -1
-          }
+        const sortedUsers =
+          [...data].sort((a, b) => {
+            if (
+              a.hasRealPhoto &&
+              !b.hasRealPhoto
+            ) {
+              return -1
+            }
 
-          if (!a.hasRealPhoto && b.hasRealPhoto) {
-            return 1
-          }
+            if (
+              !a.hasRealPhoto &&
+              b.hasRealPhoto
+            ) {
+              return 1
+            }
 
-          return a.name.localeCompare(b.name)
-        })
+            return a.name.localeCompare(
+              b.name
+            )
+          })
 
         setUsers(sortedUsers)
+
       } catch (err) {
         console.error(
           'Error loading users:',
@@ -132,13 +190,20 @@ export default function CircleGrid() {
 
         setError(true)
         setUsers([])
+
       } finally {
         setLoaded(true)
       }
     }
 
     fetchUsers()
-  }, [])
+
+  }, [currentUser])
+
+
+  /* ─────────────────────────────────────────────
+     RESET PAGE
+  ───────────────────────────────────────────── */
 
   useEffect(() => {
     setCurrentPage(1)
@@ -148,158 +213,222 @@ export default function CircleGrid() {
     intentionFilter,
   ])
 
-  const filteredUsers = useMemo(() => {
-    const normalizedSearch =
-      search
-        .trim()
-        .toLowerCase()
 
-    return users.filter((user) => {
-      const gender =
-        String(user.gender || '')
+  /* ─────────────────────────────────────────────
+     FILTER
+  ───────────────────────────────────────────── */
+
+  const filteredUsers =
+    useMemo(() => {
+      const normalizedSearch =
+        search
           .trim()
           .toLowerCase()
 
-      const matchesGender =
-        genderFilter === 'all'
-          ? true
-          : genderFilter === 'unspecified'
-            ? gender !== 'male' &&
-              gender !== 'female'
-            : gender === genderFilter
+      return users.filter((user) => {
+        const gender =
+          String(user.gender || '')
+            .trim()
+            .toLowerCase()
 
-      const matchesIntention =
-        intentionFilter === 'all'
-          ? true
-          : user.intentions.includes(
-              intentionFilter
-            )
+        const matchesGender =
+          genderFilter === 'all'
+            ? true
+            : genderFilter === 'unspecified'
+              ? gender !== 'male' &&
+                gender !== 'female'
+              : gender === genderFilter
 
-      const searchableText = [
-        user.name,
-        user.city,
-        ...user.intentions,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase()
+        const matchesIntention =
+          intentionFilter === 'all'
+            ? true
+            : user.intentions.includes(
+                intentionFilter
+              )
 
-      const matchesSearch =
-        !normalizedSearch ||
-        searchableText.includes(
-          normalizedSearch
+        const searchableText = [
+          user.name,
+          user.city,
+          ...user.intentions,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+
+        const matchesSearch =
+          !normalizedSearch ||
+          searchableText.includes(
+            normalizedSearch
+          )
+
+        return (
+          matchesGender &&
+          matchesIntention &&
+          matchesSearch
         )
+      })
 
-      return (
-        matchesGender &&
-        matchesIntention &&
-        matchesSearch
+    }, [
+      users,
+      search,
+      genderFilter,
+      intentionFilter,
+    ])
+
+
+  const totalPages =
+    Math.max(
+      1,
+      Math.ceil(
+        filteredUsers.length /
+        USERS_PER_PAGE
       )
-    })
-  }, [
-    users,
-    search,
-    genderFilter,
-    intentionFilter,
-  ])
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(
-      filteredUsers.length /
-      USERS_PER_PAGE
     )
-  )
+
 
   const startIndex =
     (currentPage - 1) *
     USERS_PER_PAGE
 
+
   const shownUsers =
     filteredUsers.slice(
       startIndex,
-      startIndex + USERS_PER_PAGE
+      startIndex +
+        USERS_PER_PAGE
     )
 
-  const isEmpty =
-    loaded &&
-    users.length === 0
 
   const noResults =
     loaded &&
+    currentUser &&
     users.length > 0 &&
     filteredUsers.length === 0
+
+
+  /* ─────────────────────────────────────────────
+     PAGE
+  ───────────────────────────────────────────── */
 
   return (
     <section className="circle-grid-section">
 
-      {loaded && !error && users.length > 0 && (
-        <div className="people-filters">
 
-          <input
-            type="text"
-            value={search}
-            onChange={(event) =>
-              setSearch(event.target.value)
-            }
-            placeholder="Search name, city..."
-            className="people-search"
-          />
+      {/* ANONYMOUS VISITOR */}
 
-          <select
-            value={genderFilter}
-            onChange={(event) =>
-              setGenderFilter(
-                event.target.value
-              )
-            }
-            className="people-filter-select"
+      {loaded && !currentUser && (
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '24px 18px 36px',
+          }}
+        >
+          <p
+            style={{
+              color: '#706965',
+              fontSize: '0.88rem',
+              lineHeight: 1.6,
+              margin: '0 0 14px',
+            }}
           >
-            <option value="all">
-              All genders
-            </option>
+            Discover people inside Ronda Circles.
+            Create a free profile to access the full people directory and connect.
+          </p>
 
-            <option value="female">
-              Women
-            </option>
-
-            <option value="male">
-              Men
-            </option>
-
-            <option value="unspecified">
-              Not specified
-            </option>
-          </select>
-
-          <select
-            value={intentionFilter}
-            onChange={(event) =>
-              setIntentionFilter(
-                event.target.value
-              )
-            }
-            className="people-filter-select"
+          <Link
+            href="/circles"
+            className="btn-primary"
           >
-            <option value="all">
-              All
-            </option>
-
-            <option value="friends">
-              Friends
-            </option>
-
-            <option value="date">
-              Date
-            </option>
-
-            <option value="business">
-              Business
-            </option>
-          </select>
-
+            Discover Circles
+          </Link>
         </div>
       )}
+
+
+      {/* FILTERS */}
+
+      {loaded &&
+        currentUser &&
+        !error &&
+        users.length > 0 && (
+
+          <div className="people-filters">
+
+            <input
+              type="text"
+              value={search}
+              onChange={(event) =>
+                setSearch(
+                  event.target.value
+                )
+              }
+              placeholder="Search name, city..."
+              className="people-search"
+            />
+
+
+            <select
+              value={genderFilter}
+              onChange={(event) =>
+                setGenderFilter(
+                  event.target.value
+                )
+              }
+              className="people-filter-select"
+            >
+
+              <option value="all">
+                All genders
+              </option>
+
+              <option value="female">
+                Women
+              </option>
+
+              <option value="male">
+                Men
+              </option>
+
+              <option value="unspecified">
+                Not specified
+              </option>
+
+            </select>
+
+
+            <select
+              value={intentionFilter}
+              onChange={(event) =>
+                setIntentionFilter(
+                  event.target.value
+                )
+              }
+              className="people-filter-select"
+            >
+
+              <option value="all">
+                All
+              </option>
+
+              <option value="friends">
+                Friends
+              </option>
+
+              <option value="date">
+                Date
+              </option>
+
+              <option value="business">
+                Business
+              </option>
+
+            </select>
+
+          </div>
+        )}
+
+
+      {/* LOADING */}
 
       {!loaded && (
         <p
@@ -313,17 +442,27 @@ export default function CircleGrid() {
         </p>
       )}
 
-      {loaded && isEmpty && !error && (
-        <p
-          style={{
-            textAlign: 'center',
-            color: '#706965',
-            padding: '40px 0',
-          }}
-        >
-          No members yet.
-        </p>
-      )}
+
+      {/* NO MEMBER */}
+
+      {loaded &&
+        currentUser &&
+        users.length === 0 &&
+        !error && (
+
+          <p
+            style={{
+              textAlign: 'center',
+              color: '#706965',
+              padding: '40px 0',
+            }}
+          >
+            No members yet.
+          </p>
+        )}
+
+
+      {/* NO RESULTS */}
 
       {noResults && !error && (
         <p
@@ -337,6 +476,9 @@ export default function CircleGrid() {
         </p>
       )}
 
+
+      {/* ERROR */}
+
       {error && (
         <p
           style={{
@@ -345,70 +487,106 @@ export default function CircleGrid() {
             padding: '40px 0',
           }}
         >
-          Could not load members. Please try again later.
+          Could not load members.
+          Please try again later.
         </p>
       )}
 
-      {!error && shownUsers.length > 0 && (
-        <div className="circle-grid">
-          {shownUsers.map((user) => (
-            <CircleCard
-              key={user.id || user.uid}
-              circle={user}
-            />
-          ))}
+
+      {/* USERS */}
+
+      {currentUser &&
+        !error &&
+        shownUsers.length > 0 && (
+
+          <div className="circle-grid">
+
+            {shownUsers.map((user) => (
+
+              <CircleCard
+                key={
+                  user.id ||
+                  user.uid
+                }
+                circle={user}
+              />
+
+            ))}
+
+          </div>
+        )}
+
+
+      {/* PAGINATION */}
+
+      {currentUser &&
+        filteredUsers.length > 0 && (
+
+          <div className="people-pagination">
+
+            {currentPage > 1 && (
+
+              <button
+                type="button"
+                className="pagination-button"
+                onClick={() =>
+                  setCurrentPage(
+                    (page) =>
+                      page - 1
+                  )
+                }
+              >
+                Previous
+              </button>
+            )}
+
+
+            <span className="pagination-info">
+
+              {filteredUsers.length}
+              {' people'}
+
+              {totalPages > 1
+                ? ` · Page ${currentPage} of ${totalPages}`
+                : ''}
+
+            </span>
+
+
+            {currentPage < totalPages && (
+
+              <button
+                type="button"
+                className="pagination-button"
+                onClick={() =>
+                  setCurrentPage(
+                    (page) =>
+                      page + 1
+                  )
+                }
+              >
+                Next
+              </button>
+            )}
+
+          </div>
+        )}
+
+
+      {/* ACTION */}
+
+      {currentUser && (
+        <div className="circle-grid-actions">
+
+          <Link
+            href="/members"
+            className="btn-primary"
+          >
+            Discover people
+          </Link>
+
         </div>
       )}
-
-      {filteredUsers.length > 0 && (
-        <div className="people-pagination">
-
-          {currentPage > 1 && (
-            <button
-              type="button"
-              className="pagination-button"
-              onClick={() =>
-                setCurrentPage(
-                  (page) => page - 1
-                )
-              }
-            >
-              Previous
-            </button>
-          )}
-
-          <span className="pagination-info">
-            {filteredUsers.length} people
-            {totalPages > 1
-              ? ` · Page ${currentPage} of ${totalPages}`
-              : ''}
-          </span>
-
-          {currentPage < totalPages && (
-            <button
-              type="button"
-              className="pagination-button"
-              onClick={() =>
-                setCurrentPage(
-                  (page) => page + 1
-                )
-              }
-            >
-              Next
-            </button>
-          )}
-
-        </div>
-      )}
-
-      <div className="circle-grid-actions">
-        <Link
-          href="/members"
-          className="btn-primary"
-        >
-          Discover people
-        </Link>
-      </div>
 
     </section>
   )

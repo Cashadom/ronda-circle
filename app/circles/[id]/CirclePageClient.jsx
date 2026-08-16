@@ -65,7 +65,7 @@ function normalizeType(value = '') {
     return 'Business'
   }
 
-  return 'Circle'
+  return 'Friends'
 }
 
 
@@ -81,7 +81,7 @@ function buildCircleName(circle) {
       circle?.category
     )
 
-  if (city && type !== 'Circle') {
+  if (city) {
     return `Ronda Club · ${city} · ${type}`
   }
 
@@ -201,7 +201,26 @@ export default function CirclePageClient() {
 
   useEffect(() => {
     if (!circle?.created_by) {
-      setCreatorName('Ronda member')
+      setCreatorName(
+        circle?.created_by_name ||
+        'Ronda member'
+      )
+      return
+    }
+
+    /*
+     * Visitors who are not signed in
+     * may not have permission to read /users.
+     *
+     * We therefore use the public creator name
+     * stored directly on the Circle first.
+     */
+
+    if (!currentUser) {
+      setCreatorName(
+        circle?.created_by_name ||
+        'Ronda member'
+      )
       return
     }
 
@@ -211,15 +230,22 @@ export default function CirclePageClient() {
       .then((name) => {
         setCreatorName(
           name ||
+          circle?.created_by_name ||
           'Ronda member'
         )
       })
       .catch(() => {
         setCreatorName(
+          circle?.created_by_name ||
           'Ronda member'
         )
       })
-  }, [circle?.created_by])
+
+  }, [
+    circle?.created_by,
+    circle?.created_by_name,
+    currentUser,
+  ])
 
 
   /* ─────────────────────────────────────────────
@@ -287,6 +313,7 @@ export default function CirclePageClient() {
             (connectionDoc) => ({
               id:
                 connectionDoc.id,
+
               ...connectionDoc.data(),
             })
           )
@@ -497,9 +524,7 @@ export default function CirclePageClient() {
      ACCEPT
   ───────────────────────────────────────────── */
 
-  async function handleAccept(
-    connection
-  ) {
+  async function handleAccept(connection) {
     if (!connection?.id) return
 
     try {
@@ -553,9 +578,13 @@ export default function CirclePageClient() {
      MEMBER ACTION
   ───────────────────────────────────────────── */
 
-  function renderMemberAction(
-    targetUid
-  ) {
+  function renderMemberAction(targetUid) {
+    /*
+     * Anonymous visitor:
+     * members remain visible.
+     * Connecting requires a profile.
+     */
+
     if (!currentUser) {
       return (
         <Link
@@ -566,6 +595,7 @@ export default function CirclePageClient() {
         </Link>
       )
     }
+
 
     if (
       currentUser.uid ===
@@ -578,10 +608,12 @@ export default function CirclePageClient() {
       )
     }
 
+
     const connection =
       getConnectionWith(
         targetUid
       )
+
 
     if (!connection) {
       return (
@@ -599,6 +631,7 @@ export default function CirclePageClient() {
       )
     }
 
+
     if (
       connection.status ===
         'pending' &&
@@ -611,6 +644,7 @@ export default function CirclePageClient() {
         </span>
       )
     }
+
 
     if (
       connection.status ===
@@ -633,6 +667,7 @@ export default function CirclePageClient() {
       )
     }
 
+
     if (
       connection.status ===
       'connected'
@@ -646,6 +681,7 @@ export default function CirclePageClient() {
         </Link>
       )
     }
+
 
     return null
   }
@@ -744,15 +780,15 @@ export default function CirclePageClient() {
         <main className="circle-loading">
 
           <div>
+
             <p>
               Circle not found.
             </p>
 
-            <Link
-              href="/circles"
-            >
+            <Link href="/circles">
               Back to Circles
             </Link>
+
           </div>
 
         </main>
@@ -794,9 +830,7 @@ export default function CirclePageClient() {
         <div className="circle-container">
 
 
-          {/* ─────────────────────────────────────
-              BACK
-          ───────────────────────────────────── */}
+          {/* BACK */}
 
           <Link
             href="/circles"
@@ -806,9 +840,7 @@ export default function CirclePageClient() {
           </Link>
 
 
-          {/* ─────────────────────────────────────
-              HEADER
-          ───────────────────────────────────── */}
+          {/* HEADER */}
 
           <section className="circle-header">
 
@@ -903,9 +935,7 @@ export default function CirclePageClient() {
           )}
 
 
-          {/* ─────────────────────────────────────
-              MEMBERS HEADER
-          ───────────────────────────────────── */}
+          {/* MEMBERS */}
 
           <section className="members-section">
 
@@ -924,6 +954,30 @@ export default function CirclePageClient() {
               </div>
 
             </div>
+
+
+            {/* VISITOR MESSAGE */}
+
+            {!currentUser && (
+              <div className="circle-login-hint">
+
+                <strong>
+                  See someone you&apos;d like to know?
+                </strong>
+
+                <span>
+                  Create your free Ronda profile to connect with people in this Circle.
+                </span>
+
+                <Link
+                  href="/login"
+                  className="circle-login-link"
+                >
+                  Create profile
+                </Link>
+
+              </div>
+            )}
 
 
             {/* FILTERS */}
@@ -955,6 +1009,7 @@ export default function CirclePageClient() {
                   }
                   className="member-filter"
                 >
+
                   <option value="all">
                     All genders
                   </option>
@@ -966,13 +1021,14 @@ export default function CirclePageClient() {
                   <option value="male">
                     Men
                   </option>
+
                 </select>
 
               </div>
             )}
 
 
-            {/* MEMBERS */}
+            {/* MEMBER LIST */}
 
             {membersLoading ? (
 
@@ -984,8 +1040,7 @@ export default function CirclePageClient() {
               0 ? (
 
               <div className="members-empty">
-                No members match
-                your search.
+                No members match your search.
               </div>
 
             ) : (
@@ -1034,6 +1089,7 @@ export default function CirclePageClient() {
                       intentions[0] ||
                       circleType
 
+
                     return (
                       <article
                         key={
@@ -1043,86 +1099,176 @@ export default function CirclePageClient() {
                         className="member-row"
                       >
 
-                        <Link
-                          href={
-                            uid
-                              ? `/members/${uid}`
-                              : '#'
-                          }
-                          className="member-profile"
-                        >
 
-                          <img
-                            src={photo}
-                            alt={name}
-                            className="member-avatar"
-                            onError={(event) => {
-                              event.currentTarget.src =
-                                '/point.png'
-                            }}
-                          />
+                        {/* PROFILE DATA */}
 
+                        {currentUser && uid ? (
 
-                          <div className="member-info">
+                          <Link
+                            href={`/members/${uid}`}
+                            className="member-profile"
+                          >
 
-                            <div className="member-name-line">
-
-                              <strong>
-                                {name}
-                              </strong>
-
-                              {gender ===
-                                'female' && (
-                                <span className="gender-symbol">
-                                  ♀
-                                </span>
-                              )}
-
-                              {gender ===
-                                'male' && (
-                                <span className="gender-symbol">
-                                  ♂
-                                </span>
-                              )}
-
-                            </div>
+                            <img
+                              src={photo}
+                              alt={name}
+                              className="member-avatar"
+                              onError={(event) => {
+                                event.currentTarget.src =
+                                  '/point.png'
+                              }}
+                            />
 
 
-                            <div className="member-meta">
+                            <div className="member-info">
 
-                              {city && (
-                                <span>
-                                  {city}
-                                </span>
-                              )}
+                              <div className="member-name-line">
 
-                              {city &&
-                                intention && (
-                                  <span>
-                                    ·
+                                <strong>
+                                  {name}
+                                </strong>
+
+
+                                {gender ===
+                                  'female' && (
+                                  <span className="gender-symbol">
+                                    ♀
                                   </span>
                                 )}
 
-                              {intention && (
-                                <span className="member-intention">
-                                  {String(
-                                    intention
+
+                                {gender ===
+                                  'male' && (
+                                  <span className="gender-symbol">
+                                    ♂
+                                  </span>
+                                )}
+
+                              </div>
+
+
+                              <div className="member-meta">
+
+                                {city && (
+                                  <span>
+                                    {city}
+                                  </span>
+                                )}
+
+
+                                {city &&
+                                  intention && (
+                                    <span>
+                                      ·
+                                    </span>
                                   )}
-                                </span>
-                              )}
+
+
+                                {intention && (
+                                  <span className="member-intention">
+                                    {String(
+                                      intention
+                                    )}
+                                  </span>
+                                )}
+
+                              </div>
+
+                            </div>
+
+                          </Link>
+
+                        ) : (
+
+                          /*
+                           * Anonymous visitor:
+                           * member is visible but profile page
+                           * remains protected.
+                           */
+
+                          <div className="member-profile">
+
+                            <img
+                              src={photo}
+                              alt={name}
+                              className="member-avatar"
+                              onError={(event) => {
+                                event.currentTarget.src =
+                                  '/point.png'
+                              }}
+                            />
+
+
+                            <div className="member-info">
+
+                              <div className="member-name-line">
+
+                                <strong>
+                                  {name}
+                                </strong>
+
+
+                                {gender ===
+                                  'female' && (
+                                  <span className="gender-symbol">
+                                    ♀
+                                  </span>
+                                )}
+
+
+                                {gender ===
+                                  'male' && (
+                                  <span className="gender-symbol">
+                                    ♂
+                                  </span>
+                                )}
+
+                              </div>
+
+
+                              <div className="member-meta">
+
+                                {city && (
+                                  <span>
+                                    {city}
+                                  </span>
+                                )}
+
+
+                                {city &&
+                                  intention && (
+                                    <span>
+                                      ·
+                                    </span>
+                                  )}
+
+
+                                {intention && (
+                                  <span className="member-intention">
+                                    {String(
+                                      intention
+                                    )}
+                                  </span>
+                                )}
+
+                              </div>
 
                             </div>
 
                           </div>
 
-                        </Link>
+                        )}
 
+
+                        {/* ACTION */}
 
                         <div className="member-actions">
+
                           {uid &&
                             renderMemberAction(
                               uid
                             )}
+
                         </div>
 
                       </article>
@@ -1137,21 +1283,15 @@ export default function CirclePageClient() {
           </section>
 
 
-          {/* ─────────────────────────────────────
-              BOTTOM
-          ───────────────────────────────────── */}
+          {/* BOTTOM */}
 
           <div className="circle-bottom">
 
-            <Link
-              href="/circles"
-            >
+            <Link href="/circles">
               Discover other Circles
             </Link>
 
-            <Link
-              href="/members"
-            >
+            <Link href="/members">
               Discover people
             </Link>
 
@@ -1167,17 +1307,10 @@ export default function CirclePageClient() {
       <style jsx global>{`
 
         .circle-page {
-          min-height:
-            100vh;
-
-          background:
-            #FFF8F2;
-
-          padding:
-            145px 20px 70px;
-
-          box-sizing:
-            border-box;
+          min-height: 100vh;
+          background: #FFF8F2;
+          padding: 145px 20px 70px;
+          box-sizing: border-box;
 
           font-family:
             "Avenir Next",
@@ -1186,198 +1319,137 @@ export default function CirclePageClient() {
             system-ui,
             sans-serif;
 
-          color:
-            #2B2725;
+          color: #2B2725;
         }
 
 
         .circle-container {
-          width:
-            100%;
-
-          max-width:
-            900px;
-
-          margin:
-            0 auto;
+          width: 100%;
+          max-width: 900px;
+          margin: 0 auto;
         }
 
 
         .circle-loading {
-          min-height:
-            100vh;
+          min-height: 100vh;
 
-          display:
-            flex;
+          display: flex;
+          align-items: center;
+          justify-content: center;
 
-          align-items:
-            center;
+          background: #FFF8F2;
 
-          justify-content:
-            center;
+          padding: 120px 20px 40px;
 
-          background:
-            #FFF8F2;
+          box-sizing: border-box;
 
-          padding:
-            120px 20px 40px;
+          text-align: center;
 
-          box-sizing:
-            border-box;
-
-          text-align:
-            center;
-
-          color:
-            #817A75;
+          color: #817A75;
         }
 
 
         .circle-loading a {
-          color:
-            #FF6B5A;
-
-          text-decoration:
-            none;
+          color: #FF6B5A;
+          text-decoration: none;
         }
 
 
         /* BACK */
 
         .back-link {
-          display:
-            inline-flex;
+          display: inline-flex;
 
-          margin-bottom:
-            18px;
+          margin-bottom: 18px;
 
-          color:
-            #817A75;
+          color: #817A75;
 
-          font-size:
-            0.78rem;
+          font-size: 0.78rem;
 
-          text-decoration:
-            none;
+          text-decoration: none;
         }
 
 
         .back-link:hover {
-          color:
-            #FF6B5A;
+          color: #FF6B5A;
         }
 
 
         /* HEADER */
 
         .circle-header {
-          display:
-            flex;
+          display: flex;
 
-          align-items:
-            flex-start;
+          align-items: flex-start;
+          justify-content: space-between;
 
-          justify-content:
-            space-between;
+          gap: 30px;
 
-          gap:
-            30px;
+          padding: 28px;
 
-          padding:
-            28px;
+          border: 1px solid #E9DDD4;
 
-          border:
-            1px solid #E9DDD4;
+          border-radius: 20px;
 
-          border-radius:
-            20px;
+          background: #FFFFFF;
 
-          background:
-            #FFFFFF;
-
-          margin-bottom:
-            18px;
+          margin-bottom: 18px;
         }
 
 
         .circle-header-content {
-          flex:
-            1;
-
-          min-width:
-            0;
+          flex: 1;
+          min-width: 0;
         }
 
 
         .circle-header-top {
-          display:
-            flex;
+          display: flex;
+          align-items: center;
 
-          align-items:
-            center;
+          gap: 10px;
 
-          gap:
-            10px;
-
-          margin-bottom:
-            12px;
+          margin-bottom: 12px;
         }
 
 
         .circle-type {
-          display:
-            inline-flex;
+          display: inline-flex;
 
-          padding:
-            5px 11px;
+          padding: 5px 11px;
 
-          border-radius:
-            999px;
+          border-radius: 999px;
 
-          background:
-            #FFF0EB;
+          background: #FFF0EB;
 
-          color:
-            #FF604E;
+          color: #FF604E;
 
-          font-size:
-            0.7rem;
+          font-size: 0.7rem;
 
-          font-weight:
-            700;
+          font-weight: 700;
         }
 
 
         .circle-type-date {
-          background:
-            #FFF0F6;
-
-          color:
-            #D94D87;
+          background: #FFF0F6;
+          color: #D94D87;
         }
 
 
         .circle-type-business {
-          background:
-            #EDF5FF;
-
-          color:
-            #397DC1;
+          background: #EDF5FF;
+          color: #397DC1;
         }
 
 
         .circle-member-count {
-          color:
-            #9A918B;
-
-          font-size:
-            0.75rem;
+          color: #9A918B;
+          font-size: 0.75rem;
         }
 
 
         .circle-header h1 {
-          margin:
-            0 0 8px;
+          margin: 0 0 8px;
 
           font-size:
             clamp(
@@ -1386,587 +1458,498 @@ export default function CirclePageClient() {
               2rem
             );
 
-          line-height:
-            1.15;
+          line-height: 1.15;
 
-          letter-spacing:
-            -0.035em;
+          letter-spacing: -0.035em;
         }
 
 
         .created-by {
-          margin:
-            0 0 16px;
+          margin: 0 0 16px;
 
-          font-size:
-            0.76rem;
+          font-size: 0.76rem;
 
-          color:
-            #9A918B;
+          color: #9A918B;
         }
 
 
         .created-by strong {
-          color:
-            #706965;
+          color: #706965;
         }
 
 
         .circle-description {
-          max-width:
-            620px;
+          max-width: 620px;
 
-          margin:
-            0 0 12px;
+          margin: 0 0 12px;
 
-          font-size:
-            0.9rem;
+          font-size: 0.9rem;
 
-          line-height:
-            1.6;
+          line-height: 1.6;
 
-          color:
-            #5F5A56;
+          color: #5F5A56;
         }
 
 
         .circle-purpose {
-          max-width:
-            620px;
+          max-width: 620px;
 
-          margin:
-            0;
+          margin: 0;
 
-          font-size:
-            0.77rem;
+          font-size: 0.77rem;
 
-          line-height:
-            1.5;
+          line-height: 1.5;
 
-          color:
-            #9A918B;
+          color: #9A918B;
         }
 
 
         /* JOIN */
 
         .circle-join-area {
-          display:
-            flex;
+          display: flex;
 
-          align-items:
-            center;
+          align-items: center;
 
-          gap:
-            8px;
+          gap: 8px;
 
-          flex-shrink:
-            0;
+          flex-shrink: 0;
         }
 
 
         .join-circle {
-          padding:
-            9px 20px;
+          padding: 9px 20px;
 
-          border:
-            none;
+          border: none;
 
-          border-radius:
-            999px;
+          border-radius: 999px;
 
-          background:
-            #FF6B5A;
+          background: #FF6B5A;
 
-          color:
-            #FFFFFF;
+          color: #FFFFFF;
 
-          font-family:
-            inherit;
+          font-family: inherit;
 
-          font-size:
-            0.8rem;
+          font-size: 0.8rem;
 
-          font-weight:
-            650;
+          font-weight: 650;
 
-          cursor:
-            pointer;
+          cursor: pointer;
         }
 
 
         .join-circle:hover {
-          background:
-            #F45542;
+          background: #F45542;
         }
 
 
         .joined-badge {
-          padding:
-            7px 14px;
+          padding: 7px 14px;
 
-          border-radius:
-            999px;
+          border-radius: 999px;
 
-          background:
-            #EAF7F0;
+          background: #EAF7F0;
 
-          color:
-            #458467;
+          color: #458467;
 
-          font-size:
-            0.75rem;
+          font-size: 0.75rem;
 
-          font-weight:
-            650;
+          font-weight: 650;
         }
 
 
         .leave-circle {
-          border:
-            1px solid #E9DDD4;
+          border: 1px solid #E9DDD4;
 
-          border-radius:
-            999px;
+          border-radius: 999px;
 
-          background:
-            transparent;
+          background: transparent;
 
-          color:
-            #9A918B;
+          color: #9A918B;
 
-          padding:
-            7px 13px;
+          padding: 7px 13px;
 
-          font-family:
-            inherit;
+          font-family: inherit;
 
-          font-size:
-            0.72rem;
+          font-size: 0.72rem;
 
-          cursor:
-            pointer;
+          cursor: pointer;
         }
 
 
         .leave-circle:hover {
-          color:
-            #D85B50;
+          color: #D85B50;
 
-          border-color:
-            #E7B7B1;
+          border-color: #E7B7B1;
         }
 
 
         .circle-error {
-          margin:
-            0 0 16px;
+          margin: 0 0 16px;
 
-          color:
-            #C94E45;
+          color: #C94E45;
 
-          font-size:
-            0.8rem;
+          font-size: 0.8rem;
         }
 
 
         /* MEMBERS */
 
         .members-section {
-          padding:
-            28px;
+          padding: 28px;
 
-          border:
-            1px solid #E9DDD4;
+          border: 1px solid #E9DDD4;
 
-          border-radius:
-            20px;
+          border-radius: 20px;
 
-          background:
-            #FFFFFF;
+          background: #FFFFFF;
         }
 
 
         .members-heading {
-          margin-bottom:
-            18px;
+          margin-bottom: 18px;
         }
 
 
         .members-eyebrow {
-          margin:
-            0 0 4px;
+          margin: 0 0 4px;
 
-          color:
-            #FF6B5A;
+          color: #FF6B5A;
 
-          font-size:
-            0.68rem;
+          font-size: 0.68rem;
 
-          font-weight:
-            700;
+          font-weight: 700;
 
-          letter-spacing:
-            0.1em;
+          letter-spacing: 0.1em;
 
-          text-transform:
-            uppercase;
+          text-transform: uppercase;
         }
 
 
         .members-heading h2 {
-          margin:
-            0;
+          margin: 0;
 
-          font-size:
-            1.2rem;
+          font-size: 1.2rem;
 
-          letter-spacing:
-            -0.02em;
+          letter-spacing: -0.02em;
+        }
+
+
+        /* VISITOR CTA */
+
+        .circle-login-hint {
+          display: flex;
+
+          align-items: center;
+
+          gap: 5px;
+
+          flex-wrap: wrap;
+
+          margin: -3px 0 18px;
+
+          padding: 11px 14px;
+
+          border: 1px solid #F3D8D1;
+
+          border-radius: 12px;
+
+          background: #FFF7F4;
+
+          color: #817A75;
+
+          font-size: 0.76rem;
+
+          line-height: 1.5;
+        }
+
+
+        .circle-login-hint strong {
+          color: #FF604E;
+
+          font-weight: 700;
+        }
+
+
+        .circle-login-hint span {
+          flex: 1;
+
+          min-width: 220px;
+        }
+
+
+        .circle-login-link {
+          flex-shrink: 0;
+
+          color: #FF604E;
+
+          font-weight: 700;
+
+          text-decoration: none;
+        }
+
+
+        .circle-login-link:hover {
+          color: #F45542;
         }
 
 
         /* FILTERS */
 
         .members-filters {
-          display:
-            flex;
+          display: flex;
 
-          gap:
-            10px;
+          gap: 10px;
 
-          margin-bottom:
-            18px;
+          margin-bottom: 18px;
         }
 
 
         .member-search {
-          flex:
-            1;
+          flex: 1;
 
-          height:
-            42px;
+          height: 42px;
 
-          padding:
-            0 15px;
+          padding: 0 15px;
 
-          box-sizing:
-            border-box;
+          box-sizing: border-box;
 
-          border:
-            1px solid #E5E1DD;
+          border: 1px solid #E5E1DD;
 
-          border-radius:
-            999px;
+          border-radius: 999px;
 
-          outline:
-            none;
+          outline: none;
 
-          font-family:
-            inherit;
+          font-family: inherit;
 
-          font-size:
-            0.8rem;
+          font-size: 0.8rem;
+        }
+
+
+        .member-search:focus {
+          border-color: #FFB8AD;
         }
 
 
         .member-filter {
-          height:
-            42px;
+          height: 42px;
 
-          min-width:
-            140px;
+          min-width: 140px;
 
-          padding:
-            0 15px;
+          padding: 0 15px;
 
-          border:
-            1px solid #E5E1DD;
+          border: 1px solid #E5E1DD;
 
-          border-radius:
-            999px;
+          border-radius: 999px;
 
-          background:
-            #FFFFFF;
+          background: #FFFFFF;
 
-          font-family:
-            inherit;
+          font-family: inherit;
 
-          color:
-            #5F5A56;
+          color: #5F5A56;
         }
 
 
-        /* MEMBERS LIST */
+        /* MEMBER LIST */
 
         .members-list {
-          display:
-            flex;
+          display: flex;
 
-          flex-direction:
-            column;
+          flex-direction: column;
 
-          gap:
-            7px;
+          gap: 7px;
         }
 
 
         .member-row {
-          display:
-            flex;
+          display: flex;
 
-          align-items:
-            center;
+          align-items: center;
 
-          justify-content:
-            space-between;
+          justify-content: space-between;
 
-          gap:
-            16px;
+          gap: 16px;
 
-          padding:
-            10px 12px;
+          padding: 10px 12px;
 
-          border-radius:
-            11px;
+          border-radius: 11px;
 
-          background:
-            #F7FAFC;
+          background: #F7FAFC;
         }
 
 
         .member-row:nth-child(even) {
-          background:
-            #FCFDFD;
+          background: #FCFDFD;
         }
 
 
         .member-profile {
-          flex:
-            1;
+          flex: 1;
 
-          min-width:
-            0;
+          min-width: 0;
 
-          display:
-            flex;
+          display: flex;
 
-          align-items:
-            center;
+          align-items: center;
 
-          gap:
-            11px;
+          gap: 11px;
 
-          color:
-            inherit;
+          color: inherit;
 
-          text-decoration:
-            none;
+          text-decoration: none;
         }
 
 
         .member-avatar {
-          width:
-            42px;
+          width: 42px;
 
-          height:
-            42px;
+          height: 42px;
 
-          flex:
-            0 0 42px;
+          flex: 0 0 42px;
 
-          border-radius:
-            50%;
+          border-radius: 50%;
 
-          object-fit:
-            cover;
+          object-fit: cover;
 
-          background:
-            #FFFFFF;
+          background: #FFFFFF;
         }
 
 
         .member-info {
-          min-width:
-            0;
+          min-width: 0;
         }
 
 
         .member-name-line {
-          display:
-            flex;
+          display: flex;
 
-          align-items:
-            center;
+          align-items: center;
 
-          gap:
-            4px;
+          gap: 4px;
 
-          margin-bottom:
-            2px;
+          margin-bottom: 2px;
         }
 
 
         .member-name-line strong {
-          font-size:
-            0.85rem;
+          font-size: 0.85rem;
 
-          color:
-            #343434;
+          color: #343434;
         }
 
 
         .gender-symbol {
-          color:
-            #9A918B;
+          color: #9A918B;
 
-          font-size:
-            0.75rem;
+          font-size: 0.75rem;
         }
 
 
         .member-meta {
-          display:
-            flex;
+          display: flex;
 
-          align-items:
-            center;
+          align-items: center;
 
-          gap:
-            5px;
+          gap: 5px;
 
-          font-size:
-            0.72rem;
+          font-size: 0.72rem;
 
-          color:
-            #817A75;
+          color: #817A75;
         }
 
 
         .member-intention {
-          color:
-            #FF604E;
+          color: #FF604E;
 
-          font-weight:
-            600;
+          font-weight: 600;
         }
 
 
         .member-actions {
-          flex-shrink:
-            0;
+          flex-shrink: 0;
         }
 
 
         .member-action {
-          min-width:
-            88px;
+          min-width: 88px;
 
-          display:
-            inline-flex;
+          display: inline-flex;
 
-          align-items:
-            center;
+          align-items: center;
 
-          justify-content:
-            center;
+          justify-content: center;
 
-          padding:
-            7px 14px;
+          padding: 7px 14px;
 
-          border-radius:
-            999px;
+          border-radius: 999px;
 
-          box-sizing:
-            border-box;
+          box-sizing: border-box;
 
-          font-family:
-            inherit;
+          font-family: inherit;
 
-          font-size:
-            0.72rem;
+          font-size: 0.72rem;
 
-          font-weight:
-            650;
+          font-weight: 650;
 
-          text-decoration:
-            none;
+          text-decoration: none;
         }
 
 
         .member-action.primary {
-          border:
-            none;
+          border: none;
 
-          background:
-            #FF6B5A;
+          background: #FF6B5A;
 
-          color:
-            #FFFFFF;
+          color: #FFFFFF;
 
-          cursor:
-            pointer;
+          cursor: pointer;
         }
 
 
         .member-action.primary:hover {
-          background:
-            #F45542;
+          background: #F45542;
         }
 
 
         .member-action.pending,
         .member-action.own {
-          background:
-            #F3EEEA;
+          background: #F3EEEA;
 
-          color:
-            #817A75;
+          color: #817A75;
         }
 
 
         .members-loading,
         .members-empty {
-          padding:
-            35px 0;
+          padding: 35px 0;
 
-          text-align:
-            center;
+          text-align: center;
 
-          color:
-            #9A918B;
+          color: #9A918B;
 
-          font-size:
-            0.82rem;
+          font-size: 0.82rem;
         }
 
 
         /* BOTTOM */
 
         .circle-bottom {
-          display:
-            flex;
+          display: flex;
 
-          justify-content:
-            center;
+          justify-content: center;
 
-          gap:
-            24px;
+          gap: 24px;
 
-          padding:
-            24px 0 0;
+          padding: 24px 0 0;
         }
 
 
         .circle-bottom a {
-          color:
-            #FF6B5A;
+          color: #FF6B5A;
 
-          text-decoration:
-            none;
+          text-decoration: none;
 
-          font-size:
-            0.78rem;
+          font-size: 0.78rem;
         }
 
 
@@ -1981,101 +1964,101 @@ export default function CirclePageClient() {
 
 
           .circle-header {
-            flex-direction:
-              column;
+            flex-direction: column;
 
-            padding:
-              20px;
+            padding: 20px;
           }
 
 
           .circle-join-area {
-            width:
-              100%;
+            width: 100%;
           }
 
 
           .join-circle {
-            width:
-              100%;
+            width: 100%;
           }
 
 
           .members-section {
-            padding:
-              18px 14px;
+            padding: 18px 14px;
+          }
+
+
+          .circle-login-hint {
+            align-items: flex-start;
+
+            flex-direction: column;
+
+            gap: 3px;
+
+            padding: 11px 12px;
+          }
+
+
+          .circle-login-hint span {
+            min-width: 0;
+          }
+
+
+          .circle-login-link {
+            margin-top: 3px;
           }
 
 
           .members-filters {
-            display:
-              grid;
+            display: grid;
 
-            grid-template-columns:
-              1fr;
+            grid-template-columns: 1fr;
 
-            gap:
-              8px;
+            gap: 8px;
           }
 
 
           .member-filter {
-            width:
-              100%;
+            width: 100%;
           }
 
 
           .member-row {
-            gap:
-              9px;
+            gap: 9px;
 
-            padding:
-              9px;
+            padding: 9px;
           }
 
 
           .member-avatar {
-            width:
-              36px;
+            width: 36px;
 
-            height:
-              36px;
+            height: 36px;
 
-            flex-basis:
-              36px;
+            flex-basis: 36px;
           }
 
 
           .member-name-line strong {
-            font-size:
-              0.8rem;
+            font-size: 0.8rem;
           }
 
 
           .member-meta {
-            font-size:
-              0.66rem;
+            font-size: 0.66rem;
           }
 
 
           .member-action {
-            min-width:
-              72px;
+            min-width: 72px;
 
-            padding:
-              6px 10px;
+            padding: 6px 10px;
 
-            font-size:
-              0.67rem;
+            font-size: 0.67rem;
           }
 
 
           .circle-bottom {
-            gap:
-              14px;
+            gap: 14px;
 
-            flex-wrap:
-              wrap;
+            flex-wrap: wrap;
           }
 
         }
