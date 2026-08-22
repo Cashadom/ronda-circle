@@ -13,7 +13,6 @@ export default function LoginPage() {
 
   useEffect(() => {
     const user = getCurrentUser()
-    // ✅ Redirection vers /profile (plus /events)
     if (user) router.push('/profile')
   }, [router])
 
@@ -22,7 +21,6 @@ export default function LoginPage() {
     setError('')
     try {
       await signInWithGoogle()
-      // ✅ Après login → /profile
       router.push('/profile')
     } catch (err) {
       setError('Unable to sign in. Please try again.')
@@ -46,17 +44,21 @@ export default function LoginPage() {
             <div className="login-features">
               <div className="feature-item">
                 <span className="feature-dot">⚲</span>
-                <span>Local or remote public circles</span>
+                <span>Meet people who are open to connecting in your city</span>
               </div>
+
               <div className="feature-item">
                 <span className="feature-dot">⚲</span>
-                <span>Public chat, no private inbox</span>
+                <span>Connect, chat and see who is actually ready to meet</span>
               </div>
+
               <div className="feature-item">
                 <span className="feature-dot">⚲</span>
-                <span>6 to 12 members per circle</span>
+                <span>Join Circles around friendship, dating or business</span>
               </div>
             </div>
+
+            <p className="connect-first">Don&apos;t just RSVP. Connect first.</p>
 
             <button
               onClick={handleGoogleSignIn}
@@ -69,6 +71,7 @@ export default function LoginPage() {
                 <path d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" fill="#FBBC05"/>
                 <path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" fill="#34A853"/>
               </svg>
+
               {loading ? 'Signing in...' : 'Sign in with Google'}
             </button>
 
@@ -81,6 +84,7 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
       <Footer />
 
       <style jsx>{`
@@ -154,7 +158,7 @@ export default function LoginPage() {
           display: flex;
           flex-direction: column;
           gap: 10px;
-          padding: 16px 0 8px;
+          padding: 16px 0 0;
         }
 
         .feature-item {
@@ -172,6 +176,17 @@ export default function LoginPage() {
           color: #FF6B5A;
           width: 24px;
           text-align: center;
+          flex-shrink: 0;
+        }
+
+        .connect-first {
+          margin: -4px 0 0;
+          text-align: center;
+          font-family: 'Inter', sans-serif;
+          font-size: 0.92rem;
+          line-height: 1.4;
+          font-weight: 700;
+          color: #FF6B5A;
         }
 
         .btn-google {
@@ -249,6 +264,10 @@ export default function LoginPage() {
 
           .feature-item {
             font-size: 0.8rem;
+          }
+
+          .connect-first {
+            font-size: 0.85rem;
           }
 
           .btn-google {
