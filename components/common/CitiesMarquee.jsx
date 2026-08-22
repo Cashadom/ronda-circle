@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
+
 import {
   collection,
   getDocs,
@@ -179,30 +181,101 @@ export default function CitiesMarquee() {
   ] = useState('member')
 
 
+  const [
+    totalUsers,
+    setTotalUsers,
+  ] = useState(null)
+
+
   /* ─────────────────────────────────────────────
-     AUTH
+     PUBLIC TOTAL USERS
+
+     Uses the public server API.
+     No Firestore permission required.
   ───────────────────────────────────────────── */
 
   useEffect(() => {
-    const unsub =
-      onAuthChange(
-        (user) => {
-          setCurrentUser(
-            user || null
+
+    async function loadPublicStats() {
+
+      try {
+
+        const response =
+          await fetch(
+            '/api/stats',
+            {
+              method: 'GET',
+              cache: 'no-store',
+            }
+          )
+
+
+        if (!response.ok) {
+          throw new Error(
+            'Unable to load Ronda statistics'
           )
         }
-      )
 
-    return () => unsub()
+
+        const data =
+          await response.json()
+
+
+        setTotalUsers(
+          Number(
+            data.total_users ||
+            0
+          )
+        )
+
+
+      } catch (error) {
+
+        console.error(
+          'Error loading Ronda statistics:',
+          error
+        )
+
+      }
+    }
+
+
+    loadPublicStats()
 
   }, [])
 
 
   /* ─────────────────────────────────────────────
-     ACTIVITY
-     
-     /users and /connections remain PRIVATE.
-     Anonymous visitors simply see the cities.
+     AUTH
+  ───────────────────────────────────────────── */
+
+  useEffect(() => {
+
+    const unsub =
+      onAuthChange(
+        (user) => {
+
+          setCurrentUser(
+            user || null
+          )
+
+        }
+      )
+
+
+    return () =>
+      unsub()
+
+  }, [])
+
+
+  /* ─────────────────────────────────────────────
+     LATEST ACTIVITY
+
+     Keeps your previous logic:
+     - latest member
+     - latest accepted connection
+     - alternating activity
   ───────────────────────────────────────────── */
 
   useEffect(() => {
@@ -216,8 +289,14 @@ export default function CitiesMarquee() {
 
 
     if (!currentUser) {
-      setLatestMember(null)
-      setLatestConnection(null)
+
+      setLatestMember(
+        null
+      )
+
+      setLatestConnection(
+        null
+      )
 
       return
     }
@@ -232,6 +311,7 @@ export default function CitiesMarquee() {
           connectionsSnapshot,
         ] =
           await Promise.all([
+
             getDocs(
               collection(
                 db,
@@ -245,16 +325,19 @@ export default function CitiesMarquee() {
                 'connections'
               )
             ),
+
           ])
 
 
         const users =
           usersSnapshot.docs.map(
             (userDoc) => ({
+
               id:
                 userDoc.id,
 
               ...userDoc.data(),
+
             })
           )
 
@@ -270,7 +353,10 @@ export default function CitiesMarquee() {
           )
 
 
-        /* NEW MEMBERS */
+        /* ─────────────────────────────────
+           NEWEST MEMBER
+        ───────────────────────────────── */
+
 
         const membersWithDate =
           users.filter(
@@ -298,16 +384,21 @@ export default function CitiesMarquee() {
         )
 
 
-        /* CONNECTIONS */
+        /* ─────────────────────────────────
+           NEWEST CONNECTION
+        ───────────────────────────────── */
+
 
         const connected =
           connectionsSnapshot.docs
             .map(
               (connectionDoc) => ({
+
                 id:
                   connectionDoc.id,
 
                 ...connectionDoc.data(),
+
               })
             )
             .filter(
@@ -326,16 +417,19 @@ export default function CitiesMarquee() {
                 a.updated_at
               )
 
+
             const bTime =
               getTimestampValue(
                 b.connected_at ||
                 b.updated_at
               )
 
+
             return (
               bTime -
               aTime
             )
+
           }
         )
 
@@ -347,25 +441,32 @@ export default function CitiesMarquee() {
         if (
           !newestConnection
         ) {
+
           setLatestConnection(
             null
           )
 
           return
+
         }
 
 
         let purpose =
           normalizeConnectionPurpose(
+
             newestConnection.intention ||
+
             newestConnection.purpose ||
+
             newestConnection.category
+
           )
 
 
         /*
-         * Legacy connections:
-         * derive purpose from requester profile.
+         * Legacy connection:
+         * use requester intentions when
+         * connection purpose is missing.
          */
 
         if (!purpose) {
@@ -388,10 +489,12 @@ export default function CitiesMarquee() {
             normalizeConnectionPurpose(
               requesterIntentions[0]
             )
+
         }
 
 
         setLatestConnection({
+
           ...newestConnection,
 
           purpose,
@@ -399,6 +502,7 @@ export default function CitiesMarquee() {
           activityDate:
             newestConnection.connected_at ||
             newestConnection.updated_at,
+
         })
 
 
@@ -448,7 +552,8 @@ export default function CitiesMarquee() {
 
           setActivityType(
             (current) =>
-              current === 'member'
+              current ===
+              'member'
                 ? 'connection'
                 : 'member'
           )
@@ -499,8 +604,10 @@ export default function CitiesMarquee() {
     !canShowMember &&
     canShowConnection
   ) {
+
     visibleActivity =
       'connection'
+
   }
 
 
@@ -510,8 +617,10 @@ export default function CitiesMarquee() {
     !canShowConnection &&
     canShowMember
   ) {
+
     visibleActivity =
       'member'
+
   }
 
 
@@ -522,10 +631,48 @@ export default function CitiesMarquee() {
   return (
     <section className="cities-marquee">
 
-      <p className="marquee-label">
-        Growing city by city
-      </p>
 
+      {/* ─────────────────────────────────────
+          COMMUNITY HEADER
+      ───────────────────────────────────── */}
+
+      <div className="ronda-community-line">
+
+        <div className="ronda-community-count">
+
+          <span className="ronda-community-prefix">
+            Ronda has
+          </span>
+
+          <strong>
+            {totalUsers !== null
+              ? totalUsers.toLocaleString(
+                  'en-US'
+                )
+              : '—'}
+          </strong>
+
+          <span className="ronda-community-prefix">
+            members
+          </span>
+
+        </div>
+
+
+        <Link
+          href="/dashboard"
+          className="ronda-community-link"
+        >
+          See statistics
+          <span>→</span>
+        </Link>
+
+      </div>
+
+
+      {/* ─────────────────────────────────────
+          CITIES — ORIGINAL ICONS PRESERVED
+      ───────────────────────────────────── */}
 
       <div className="marquee-track">
 
@@ -545,7 +692,9 @@ export default function CitiesMarquee() {
       </div>
 
 
-      {/* ACTIVITY ONLY FOR SIGNED-IN MEMBERS */}
+      {/* ─────────────────────────────────────
+          ORIGINAL ACTIVITY — MEMBER
+      ───────────────────────────────────── */}
 
       {currentUser &&
         visibleActivity ===
@@ -554,25 +703,38 @@ export default function CitiesMarquee() {
 
           <div className="marquee-activity">
 
-            <span className="activity-dot" />
+            <span
+              className="activity-dot"
+            />
 
-            <span className="activity-name">
+            <span
+              className="activity-name"
+            >
               {memberName}
             </span>
 
-            <span className="activity-text">
+            <span
+              className="activity-text"
+            >
               {' joined Ronda '}
             </span>
 
-            <span className="activity-time">
+            <span
+              className="activity-time"
+            >
               {getTimeAgo(
                 latestMember.created_at
               )}
             </span>
 
           </div>
+
         )}
 
+
+      {/* ─────────────────────────────────────
+          ORIGINAL ACTIVITY — CONNECTION
+      ───────────────────────────────────── */}
 
       {currentUser &&
         visibleActivity ===
@@ -581,9 +743,13 @@ export default function CitiesMarquee() {
 
           <div className="marquee-activity">
 
-            <span className="activity-dot" />
+            <span
+              className="activity-dot"
+            />
 
-            <span className="activity-text">
+            <span
+              className="activity-text"
+            >
 
               Two people connected
 
@@ -595,16 +761,178 @@ export default function CitiesMarquee() {
 
             </span>
 
-            <span className="activity-time">
 
+            <span
+              className="activity-time"
+            >
               {getTimeAgo(
                 latestConnection.activityDate
               )}
-
             </span>
 
           </div>
+
         )}
+
+
+      {/* ─────────────────────────────────────
+          SMALL ADDITIONAL LAYOUT ONLY
+      ───────────────────────────────────── */}
+
+      <style jsx global>{`
+
+        .ronda-community-line {
+          width:
+            calc(100% - 40px);
+
+          max-width:
+            760px;
+
+          margin:
+            0 auto 20px;
+
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          gap:
+            18px;
+        }
+
+
+        .ronda-community-count {
+          display:
+            inline-flex;
+
+          align-items:
+            baseline;
+
+          gap:
+            6px;
+
+          padding:
+            8px 14px;
+
+          border:
+            1px solid
+            #F0DED7;
+
+          border-radius:
+            999px;
+
+          background:
+            #FFFFFF;
+
+          box-shadow:
+            0 5px 16px
+            rgba(
+              78,
+              57,
+              49,
+              0.04
+            );
+        }
+
+
+        .ronda-community-count strong {
+          color:
+            #FF604E;
+
+          font-size:
+            0.95rem;
+
+          font-weight:
+            800;
+
+          letter-spacing:
+            -0.02em;
+        }
+
+
+        .ronda-community-prefix {
+          color:
+            #786D67;
+
+          font-size:
+            0.68rem;
+
+          font-weight:
+            650;
+        }
+
+
+        .ronda-community-link {
+          display:
+            inline-flex;
+
+          align-items:
+            center;
+
+          gap:
+            7px;
+
+          color:
+            #FF604E;
+
+          font-size:
+            0.68rem;
+
+          font-weight:
+            750;
+
+          text-decoration:
+            none;
+
+          white-space:
+            nowrap;
+        }
+
+
+        .ronda-community-link:hover {
+          text-decoration:
+            underline;
+        }
+
+
+        .ronda-community-link span {
+          font-size:
+            0.85rem;
+        }
+
+
+        @media (
+          max-width: 560px
+        ) {
+
+          .ronda-community-line {
+            width:
+              calc(100% - 24px);
+
+            margin-bottom:
+              16px;
+
+            flex-direction:
+              column;
+
+            gap:
+              8px;
+          }
+
+
+          .ronda-community-count {
+            padding:
+              7px 13px;
+          }
+
+        }
+
+      `}</style>
+
 
     </section>
   )

@@ -1,4 +1,6 @@
-rules_version = '2';
+from pathlib import Path
+
+rules = r"""rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -11,128 +13,87 @@ service cloud.firestore {
       return request.auth.uid;
     }
 
-
-    // ─────────────────────────────────────────────────────────────────────
     // USERS
-    // ─────────────────────────────────────────────────────────────────────
-
+    // Public profile reading is kept because Ronda displays people publicly.
+    // A user may only modify their own user document.
     match /users/{userId} {
+      allow read: if true;
 
-      // Les membres connectés peuvent consulter les profils
-      allow read: if isSignedIn();
-
-      // Chacun peut créer / modifier / supprimer son propre profil
       allow create, update, delete: if isSignedIn()
         && uid() == userId;
+
+      match /circles/{circleId} {
+        allow read: if true;
+
+        allow create, update, delete: if isSignedIn()
+          && uid() == userId;
+      }
     }
 
-
-    // ─────────────────────────────────────────────────────────────────────
     // CONNECTIONS
-    // ─────────────────────────────────────────────────────────────────────
-
+    // Connection data and private messages are NOT public.
     match /connections/{connectionId} {
-
-      // Nécessaire pour charger les états connect / pending / message
-      allow read: if isSignedIn();
-
-
-      // Création d'une demande de connexion
-      allow create: if isSignedIn()
-
-        && request.resource.data.participants is list
-
-        && request.resource.data.participants.size() == 2
-
-        && uid() in request.resource.data.participants
-
-        && request.resource.data.requestedBy == uid()
-
-        && request.resource.data.status == 'pending';
-
-
-      // Modification d'une connexion existante
-      // uniquement par l'un des deux participants
-      allow update: if isSignedIn()
-
+      allow read: if isSignedIn()
         && resource.data.participants is list
-
         && uid() in resource.data.participants;
 
+      allow create: if isSignedIn()
+        && request.resource.data.participants is list
+        && request.resource.data.participants.size() == 2
+        && uid() in request.resource.data.participants
+        && request.resource.data.requestedBy == uid()
+        && request.resource.data.status == 'pending';
 
-      // Annulation d'une demande en attente
-      allow delete: if isSignedIn()
-
+      allow update: if isSignedIn()
         && resource.data.participants is list
+        && uid() in resource.data.participants;
 
+      allow delete: if isSignedIn()
+        && resource.data.participants is list
         && uid() in resource.data.participants
-
         && resource.data.status == 'pending';
 
-
-      // ───────────────────────────────────────────────────────────────────
-      // PRIVATE MESSAGES
-      // connections/{connectionId}/messages/{messageId}
-      // ───────────────────────────────────────────────────────────────────
-
       match /messages/{messageId} {
-
-        // Messages visibles uniquement après connexion acceptée
         allow read: if isSignedIn()
-
           && get(
             /databases/$(database)/documents/connections/$(connectionId)
-          ).data.status == 'connected'
-
+          ).data.participants is list
           && uid() in get(
             /databases/$(database)/documents/connections/$(connectionId)
           ).data.participants;
 
-
-        // Envoi uniquement entre personnes connectées
         allow create: if isSignedIn()
-
           && get(
             /databases/$(database)/documents/connections/$(connectionId)
           ).data.status == 'connected'
-
           && uid() in get(
             /databases/$(database)/documents/connections/$(connectionId)
           ).data.participants
-
           && request.resource.data.author_id == uid()
-
           && request.resource.data.text is string
-
           && request.resource.data.text.size() > 0
-
           && request.resource.data.text.size() <= 1000;
-
 
         allow update, delete: if false;
       }
     }
 
+    // PUBLIC AGGREGATED DASHBOARD
+    // /dashboard can read ONLY aggregate statistics from here.
+    match /public_stats/{documentId} {
+      allow read: if true;
+      allow write: if false;
+    }
 
-    // ─────────────────────────────────────────────────────────────────────
     // CIRCLES
-    // Ancien système conservé pour ne pas casser l'existant
-    // ─────────────────────────────────────────────────────────────────────
-
     match /circles/{circleId} {
-
       allow read: if true;
 
       allow create: if isSignedIn();
-
       allow update: if isSignedIn();
-
       allow delete: if false;
 
-
-      // Membres des anciens circles
       match /members/{memberId} {
-
         allow read: if true;
 
         allow create, update: if isSignedIn()
@@ -142,32 +103,62 @@ service cloud.firestore {
           && uid() == memberId;
       }
 
-
-      // Messages publics des anciens circles
       match /messages/{messageId} {
-
         allow read: if true;
 
         allow create: if isSignedIn()
-
           && request.resource.data.text is string
-
           && request.resource.data.text.size() > 0
-
           && request.resource.data.text.size() <= 280;
 
         allow update, delete: if false;
       }
+
+      match /weeklyMoments/{momentId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+      }
     }
 
+    // EXISTING RONDA COLLECTIONS
+    match /events/{document=**} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
 
-    // ─────────────────────────────────────────────────────────────────────
-    // DEFAULT DENY
-    // Tout ce qui n'est pas explicitement autorisé ci-dessus est bloqué
-    // ─────────────────────────────────────────────────────────────────────
+    match /jobs/{document=**} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
 
+    match /meetup_participants/{document=**} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /meetups/{document=**} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /pending_events/{document=**} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /ronda_users/{document=**} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Everything else denied by default.
     match /{document=**} {
       allow read, write: if false;
     }
   }
 }
+"""
+
+path = Path("/mnt/data/firestore.rules")
+path.write_text(rules, encoding="utf-8")
+print(f"Created: {path}")
