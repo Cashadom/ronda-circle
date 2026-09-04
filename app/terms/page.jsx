@@ -1,4 +1,5 @@
 'use client'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Globe } from 'lucide-react'
@@ -12,320 +13,653 @@ export default function TermsPage() {
   const router = useRouter()
   const [language, setLanguage] = useState('en')
 
-  const terms = {
+  const content = {
     en: {
-      title: "Terms and Conditions",
-      sections: [
+      title: 'Terms & Privacy Policy',
+
+      intro:
+        'These Terms and this Privacy Policy explain the rules for using Ronda Club and how we collect, use and protect personal information.',
+
+      termsTitle: 'Terms and Conditions',
+
+      terms: [
         {
-          heading: "1. Acceptance of Terms",
+          heading: '1. Acceptance of Terms',
           content: [
-            "By accessing or using Ronda Club (the \"Platform\"), you agree to be bound by these Terms and Conditions.",
-            "If you do not agree with these Terms, you must not use the Platform.",
-            "You must be at least 18 years old to create an account, create a circle, or join a circle."
-          ]
+            'By accessing or using Ronda Club (the "Platform"), you agree to be bound by these Terms and Conditions.',
+            'If you do not agree with these Terms, you must not use the Platform.',
+            'You must be at least 18 years old to create or use a Ronda Club account.',
+          ],
         },
+
         {
-          heading: "2. What is Ronda Club",
+          heading: '2. What is Ronda Club',
           content: [
-            "Ronda Club is a social platform that lets users create and join small public circles to meet people locally or remotely.",
-            "Circles are limited to 6 to 12 members.",
-            "Each circle includes a public chat visible to all members of that circle.",
-            "Ronda Club does not provide private messaging between users.",
-            "Circle creators are not official organizers or employees of Ronda Club — they are regular users who opened a circle."
-          ]
+            'Ronda Club is a social platform designed to help adults discover people, join Circles, connect, communicate and potentially meet in real life.',
+            'Circles may be local or remote and may focus on friendship, dating, business, travel or other social interests.',
+            'Ronda Club may provide public Circle spaces as well as direct messaging between users who connect.',
+            'Circle creators are regular users of Ronda Club. Unless expressly stated otherwise, they are not employees, agents or official representatives of Ronda Club.',
+          ],
         },
+
         {
-          heading: "3. User Account",
+          heading: '3. User Accounts',
           content: [
-            "You are responsible for keeping your account credentials confidential and for all activity occurring under your account.",
-            "You agree to provide accurate information and not to impersonate another person.",
-            "Fake accounts, bots, spam, abusive use, or attempts to manipulate the Platform are strictly prohibited."
-          ]
+            'You are responsible for activity occurring through your account.',
+            'You agree to provide accurate information and not to impersonate another person.',
+            'Fake accounts, bots, spam, fraud, abusive use and attempts to manipulate the Platform are prohibited.',
+            'Ronda Club may suspend or remove accounts that violate these Terms or create risks for other members.',
+          ],
         },
+
         {
-          heading: "4. Circles and Membership",
+          heading: '4. Circles and Community Participation',
           content: [
-            "Any user may create a public circle on the Platform.",
-            "Circles are open and free to join — there is no participation fee.",
-            "Members of a circle gain access to its public chat.",
-            "The circle creator may not exclude members from the public chat once they have joined.",
-            "Ronda Club may remove, archive, or moderate any circle that violates these Terms."
-          ]
+            'Users may create or join Circles available on the Platform.',
+            'Circle descriptions, locations, dates and other information must be accurate and must not intentionally mislead other users.',
+            'Participation in a Circle does not guarantee that other members will attend an offline meetup or respond to messages.',
+            'Users should communicate with other members and confirm plans directly before travelling to an offline meeting.',
+            'Ronda Club may remove, restrict, archive or moderate Circles that violate these Terms or applicable law.',
+          ],
         },
+
         {
-          heading: "5. Circle Creator Responsibilities",
+          heading: '5. Connections and Messaging',
           content: [
-            "Circle creators are responsible for providing an accurate title, description, theme, and city for their circle.",
-            "Creators must not create misleading, unsafe, illegal, discriminatory, fake, or spam circles.",
-            "Creating a circle does not grant any special authority over other members beyond being the initiator."
-          ]
+            'Users may request connections with other members through Ronda Club.',
+            'A connection is created only when the relevant connection process is completed or accepted.',
+            'Connected users may be able to exchange private messages.',
+            'Private messages are intended only for the users participating in that conversation, subject to technical processing necessary to operate, secure and moderate the service.',
+            'Users must not use messaging features for harassment, spam, scams, unwanted solicitation or illegal activity.',
+          ],
         },
+
         {
-          heading: "6. Member Responsibilities",
+          heading: '6. Member Responsibilities',
           content: [
-            "Members are responsible for their own messages and interactions within a circle's public chat.",
-            "Members must behave respectfully toward all other members, both online and offline.",
-            "Members must not harass, threaten, discriminate, defame, stalk, or otherwise harm other users.",
-            "Ronda Club does not guarantee compatibility, friendship, or any specific outcome from joining a circle."
-          ]
+            'You are responsible for your messages, profile information, Circles, interactions and any content you publish.',
+            'You must behave respectfully toward other users online and offline.',
+            'You must not harass, threaten, stalk, discriminate against, defame, deceive or intentionally harm another user.',
+            'Ronda Club does not guarantee friendship, compatibility, attendance, business opportunities, dating outcomes or any other specific result.',
+          ],
         },
+
         {
-          heading: "7. Public Chat",
+          heading: '7. Offline Meetings and Events',
           content: [
-            "Each circle contains a public chat accessible to all members of that circle.",
-            "Messages posted in a circle's chat are visible to all current members.",
-            "Ronda Club does not offer private messaging or direct inbox features between users.",
-            "Users are responsible for the content of their messages. Abusive, illegal, or harmful content is prohibited."
-          ]
+            'Ronda Club may help users discover people who are interested in meeting offline.',
+            'Unless expressly stated otherwise, Ronda Club does not supervise, host or guarantee attendance at offline meetings.',
+            'The number of online RSVPs, Circle members or interested users does not guarantee the number of people who will physically attend.',
+            'Users are encouraged to connect and communicate with other participants before travelling to a meeting.',
+            'Meeting another person offline involves inherent risks. You are responsible for deciding whether, where and how to meet another user.',
+          ],
         },
+
         {
-          heading: "8. Offline Interactions and Assumption of Risk",
+          heading: '8. Safety and Assumption of Risk',
           content: [
-            "Ronda Club may connect users who then choose to meet offline. Ronda Club does not control, supervise, or take responsibility for offline interactions.",
-            "You understand that meeting other users in person involves risks, including personal injury, illness, theft, or other unexpected situations.",
-            "You voluntarily assume all risks related to any offline interaction resulting from your use of the Platform.",
-            "Ronda Club is not responsible for the actions, omissions, or behavior of any user online or offline."
-          ]
+            'You understand that interactions with people you meet through the Platform may involve risks, including personal injury, illness, theft, fraud or other unexpected situations.',
+            'You should take reasonable precautions, including meeting in appropriate public places and informing someone you trust when meeting a new person.',
+            'Ronda Club does not guarantee the identity, background, intentions, reliability or behaviour of any user.',
+            'To the maximum extent permitted by applicable law, users voluntarily assume the risks associated with their offline interactions.',
+          ],
         },
+
         {
-          heading: "9. Prohibited Behavior",
+          heading: '9. Prohibited Behaviour',
           content: [
-            "The following are strictly prohibited on the Platform: harassment, threats, hate speech, racism, sexism, discrimination, violence, stalking, fraud, impersonation, illegal activity, and sharing private information without consent.",
-            "Circles used for spam, advertising, political propaganda, religious recruitment, or any commercial purpose without authorization are prohibited.",
-            "Ronda Club may remove unsafe, fake, abusive, discriminatory, or spam circles without prior notice."
-          ]
+            'Harassment, threats, hate speech, racism, sexism, discrimination, violence, stalking, fraud, impersonation, scams and illegal activity are prohibited.',
+            'Users must not share another person’s private information without permission.',
+            'Spam, automated activity, misleading Circles and unauthorised commercial solicitation are prohibited.',
+            'Ronda Club may restrict or remove content and accounts that violate these rules.',
+          ],
         },
+
         {
-          heading: "10. No Responsibility for User Behavior",
+          heading: '10. User-Generated Content',
           content: [
-            "Ronda Club does not guarantee the identity, background, reliability, honesty, or behavior of any user.",
-            "Any interaction between users — whether online or offline — is solely between those users.",
-            "Ronda Club is not liable for disputes, damages, losses, injuries, or other harm resulting from user interactions."
-          ]
+            'Ronda Club contains content created by users, including profiles, Circle information and messages.',
+            'You remain responsible for content you publish.',
+            'You grant Ronda Club a worldwide, non-exclusive, royalty-free licence to host, store, display and process your content only as reasonably necessary to operate, secure, moderate and improve the Platform.',
+            'You must have the necessary rights to any content you upload.',
+          ],
         },
+
         {
-          heading: "11. Content and Intellectual Property",
+          heading: '11. Intellectual Property',
           content: [
-            "You remain the owner of the content you post, but you grant Ronda Club a worldwide, non-exclusive, royalty-free license to display and use your content for the operation of the Platform.",
-            "Ronda Club's name, logo, design, software, and branding remain the property of Ronda Club or its licensors."
-          ]
+            'Ronda Club’s name, branding, software, interface, design and original content remain the property of Ronda Club or its licensors.',
+            'Nothing in these Terms transfers ownership of Ronda Club intellectual property to users.',
+          ],
         },
+
         {
-          heading: "12. Privacy and Data Protection",
+          heading: '12. Limitation of Liability',
           content: [
-            "The collection and use of personal data are described in our Privacy Policy.",
-            "We comply with applicable data protection laws, including the EU General Data Protection Regulation (GDPR).",
-            "Users may request access, correction, deletion, or portability of their personal data by contacting us at cyril.ragonet@gmail.com.",
-            "We do not sell users' personal data."
-          ]
+            'To the maximum extent permitted by applicable law, Ronda Club shall not be liable for indirect, incidental, special, consequential or punitive damages.',
+            'Ronda Club is not responsible for the acts, omissions or behaviour of users or third parties.',
+            'The Platform is provided on an as-is and as-available basis without a guarantee of uninterrupted access or specific results.',
+            'Nothing in these Terms excludes liability that cannot legally be excluded under applicable law.',
+          ],
         },
+
         {
-          heading: "13. Limitation of Liability",
+          heading: '13. Suspension and Termination',
           content: [
-            "To the maximum extent permitted by law, Ronda Club shall not be liable for indirect, incidental, special, consequential, or punitive damages.",
-            "Ronda Club shall not be liable for user behavior, offline incidents, or damages caused by third parties.",
-            "The Platform is provided as-is, without any guarantee of uninterrupted access or specific results."
-          ]
+            'Ronda Club may suspend, restrict or terminate an account that violates these Terms, abuses the Platform or creates a safety, security or legal risk.',
+            'You may stop using Ronda Club at any time.',
+          ],
         },
+
         {
-          heading: "14. Account Suspension and Termination",
+          heading: '14. Changes to These Terms',
           content: [
-            "We may suspend or terminate your account if you violate these Terms, abuse the Platform, create unsafe circles, harass users, or damage the community.",
-            "You may stop using the Platform at any time."
-          ]
+            'We may update these Terms when the Platform, applicable law or our practices change.',
+            'Material changes may be communicated through the Platform, website or email where appropriate.',
+          ],
         },
+
         {
-          heading: "15. Changes to These Terms",
+          heading: '15. Governing Law',
           content: [
-            "We may update these Terms from time to time. When changes are material, we may notify users through the Platform or by email.",
-            "Continued use of the Platform after changes means you accept the updated Terms."
-          ]
+            'These Terms are governed by applicable French and European law, subject to mandatory consumer protection rules that may apply in your country.',
+            'Users are encouraged to contact Ronda Club first in good faith to seek an amicable solution to any dispute.',
+          ],
         },
+      ],
+
+      privacyTitle: 'Privacy Policy',
+
+      privacyIntro:
+        'This Privacy Policy explains what personal information Ronda Club may collect, why it is used, how it is protected and the choices available to users.',
+
+      privacy: [
         {
-          heading: "16. Governing Law and Disputes",
+          heading: '1. Information We Collect',
           content: [
-            "These Terms are governed by applicable French and European law, unless mandatory consumer protection rules provide otherwise.",
-            "In case of dispute, users agree to first contact Ronda Club in good faith to seek an amicable resolution."
-          ]
+            'Depending on how you use Ronda Club, we may collect account information such as your Google account identifier, email address, name, display name and profile photo.',
+            'We may collect profile information you choose to provide, such as city, biography, gender, interests, intentions and profile images.',
+            'We process community activity such as Circles you create or join, connection requests, accepted connections, messages, events and other activity necessary to operate the Platform.',
+            'We may also process technical information required for authentication, security, troubleshooting and operation of the service.',
+          ],
         },
+
         {
-          heading: "17. Contact",
+          heading: '2. Google Sign-In',
           content: [
-            "For questions, complaints, account deletion, or legal notices, contact us at: cyril.ragonet@gmail.com.",
-            "Provider: Ronda Club.",
-            "Last updated: April 2026."
-          ]
-        }
-      ]
+            'Ronda Club allows users to authenticate using Google Sign-In.',
+            'When you use Google Sign-In, Google may provide Ronda Club with basic account information such as your name, email address, profile image and unique account identifier.',
+            'Ronda Club does not receive or store your Google password.',
+          ],
+        },
+
+        {
+          heading: '3. How We Use Personal Information',
+          content: [
+            'We use personal information to create and manage accounts, operate profiles, Circles, connections and messaging features.',
+            'We use information to provide community functionality, prevent abuse, secure the Platform, troubleshoot problems and improve Ronda Club.',
+            'We may use information to enforce these Terms and protect users and the Platform.',
+            'Ronda Club does not sell users’ personal data.',
+          ],
+        },
+
+        {
+          heading: '4. Information Visible to Other Users',
+          content: [
+            'Ronda Club is a social platform. Information you intentionally publish through your profile, Circles or other public community features may be visible to other users.',
+            'You should not publish information that you do not want other people to see.',
+            'Messages in public or Circle spaces may be visible to the users who have access to those spaces.',
+            'Direct messages are intended for the users participating in the relevant conversation.',
+          ],
+        },
+
+        {
+          heading: '5. Service Providers',
+          content: [
+            'Ronda Club uses third-party technical providers necessary to operate the Platform.',
+            'Google Firebase is used for services including authentication, database and storage infrastructure.',
+            'Google Sign-In is used for authentication.',
+            'Netlify is used for application hosting and server infrastructure.',
+            'These providers may process information as necessary to provide their services and according to their respective terms and privacy obligations.',
+          ],
+        },
+
+        {
+          heading: '6. Data Sharing',
+          content: [
+            'Ronda Club does not sell personal information to advertisers or data brokers.',
+            'Information may be processed by our technical service providers as necessary to operate Ronda Club.',
+            'We may disclose information when required by applicable law, legal process or when reasonably necessary to protect users, the Platform or the rights of others.',
+          ],
+        },
+
+        {
+          heading: '7. Data Security',
+          content: [
+            'We use reasonable technical and organisational measures designed to protect personal information.',
+            'Access to administrative systems and server-side credentials is restricted.',
+            'Data is transmitted using encrypted connections where supported.',
+            'No internet-based service can guarantee absolute security.',
+          ],
+        },
+
+        {
+          heading: '8. Data Retention',
+          content: [
+            'We retain personal information for as long as reasonably necessary to provide Ronda Club, maintain account functionality, protect users, prevent fraud and comply with applicable legal obligations.',
+            'Where information is no longer required, it may be deleted or anonymised.',
+            'Certain information may be retained when reasonably necessary for security, fraud prevention, dispute resolution or legal compliance.',
+          ],
+        },
+
+        {
+          heading: '9. Account and Data Deletion',
+          content: [
+            'Users may permanently delete their Ronda Club account from their profile.',
+            'Account deletion instructions are available at https://ronda-club.com/delete-account',
+            'Users who cannot access their account may request assistance by contacting us at cyril.ragonet@gmail.com.',
+            'When an eligible deletion request is completed, personal data associated with the account will be deleted or anonymised, except information that we are legally required or legitimately permitted to retain.',
+          ],
+        },
+
+        {
+          heading: '10. Your Data Protection Rights',
+          content: [
+            'Depending on your location, you may have rights relating to your personal information.',
+            'These may include rights of access, correction, deletion, restriction, objection and data portability.',
+            'Users in the European Economic Area may exercise applicable rights under the General Data Protection Regulation (GDPR).',
+            'Requests may be sent to cyril.ragonet@gmail.com.',
+          ],
+        },
+
+        {
+          heading: '11. International Users',
+          content: [
+            'Ronda Club may be used by people in multiple countries.',
+            'Information may therefore be processed using technical infrastructure located outside your country of residence.',
+            'Where required, we rely on appropriate safeguards for international processing of personal data.',
+          ],
+        },
+
+        {
+          heading: '12. Adults Only',
+          content: [
+            'Ronda Club is intended only for users aged 18 or older.',
+            'People under 18 are not permitted to create or use a Ronda Club account.',
+            'We do not knowingly seek to collect personal information from children.',
+          ],
+        },
+
+        {
+          heading: '13. Changes to this Privacy Policy',
+          content: [
+            'We may update this Privacy Policy when the Platform, our practices or legal requirements change.',
+            'The latest version will remain available through the Ronda Club website and application.',
+          ],
+        },
+
+        {
+          heading: '14. Privacy Contact',
+          content: [
+            'For privacy questions, data requests, complaints or account deletion requests, contact: cyril.ragonet@gmail.com.',
+            'Service: Ronda Club.',
+            'Website: https://ronda-club.com',
+          ],
+        },
+      ],
+
+      lastUpdated: 'Last updated: September 2026.',
     },
+
     de: {
-      title: "Allgemeine Geschäftsbedingungen",
-      sections: [
+      title: 'Nutzungsbedingungen & Datenschutz',
+
+      intro:
+        'Diese Nutzungsbedingungen und Datenschutzerklärung erläutern die Regeln für die Nutzung von Ronda Club sowie den Umgang mit personenbezogenen Daten.',
+
+      termsTitle: 'Allgemeine Nutzungsbedingungen',
+
+      terms: [
         {
-          heading: "1. Anerkennung der Bedingungen",
+          heading: '1. Anerkennung der Bedingungen',
           content: [
-            "Mit der Nutzung von Ronda Club (der 'Plattform') akzeptieren Sie diese Allgemeinen Geschäftsbedingungen.",
-            "Wenn Sie nicht zustimmen, dürfen Sie die Plattform nicht nutzen.",
-            "Sie müssen mindestens 18 Jahre alt sein, um ein Konto zu erstellen, einen Circle zu erstellen oder einem Circle beizutreten."
-          ]
+            'Durch den Zugriff auf Ronda Club oder die Nutzung der Plattform akzeptieren Sie diese Nutzungsbedingungen.',
+            'Wenn Sie diesen Bedingungen nicht zustimmen, dürfen Sie die Plattform nicht nutzen.',
+            'Sie müssen mindestens 18 Jahre alt sein, um ein Ronda-Club-Konto zu erstellen oder zu nutzen.',
+          ],
         },
+
         {
-          heading: "2. Was ist Ronda Club",
+          heading: '2. Was ist Ronda Club',
           content: [
-            "Ronda Club ist eine soziale Plattform, auf der Nutzer kleine öffentliche Circles erstellen und beitreten können, um Menschen lokal oder remote kennenzulernen.",
-            "Circles sind auf 6 bis 12 Mitglieder begrenzt.",
-            "Jeder Circle enthält einen öffentlichen Chat, der für alle Mitglieder des Circles sichtbar ist.",
-            "Ronda Club bietet kein privates Messaging zwischen Nutzern an.",
-            "Circle-Ersteller sind keine offiziellen Veranstalter oder Mitarbeiter von Ronda Club – sie sind reguläre Nutzer, die einen Circle eröffnet haben."
-          ]
+            'Ronda Club ist eine soziale Plattform für Erwachsene, um Menschen zu entdecken, Circles beizutreten, Kontakte zu knüpfen, zu kommunizieren und sich möglicherweise persönlich zu treffen.',
+            'Circles können lokal oder remote sein und sich auf Freundschaft, Dating, Business, Reisen oder andere soziale Interessen konzentrieren.',
+            'Ronda Club kann öffentliche Circle-Bereiche sowie Direktnachrichten zwischen verbundenen Nutzern anbieten.',
+            'Circle-Ersteller sind reguläre Nutzer und, sofern nicht ausdrücklich anders angegeben, keine Mitarbeiter oder offiziellen Vertreter von Ronda Club.',
+          ],
         },
+
         {
-          heading: "3. Nutzerkonto",
+          heading: '3. Nutzerkonten',
           content: [
-            "Sie sind für die Vertraulichkeit Ihrer Zugangsdaten und alle Aktivitäten unter Ihrem Konto verantwortlich.",
-            "Sie verpflichten sich, genaue Angaben zu machen und keine andere Person zu imitieren.",
-            "Fake-Accounts, Bots, Spam, Missbrauch oder Manipulationsversuche sind strengstens verboten."
-          ]
+            'Sie sind für die Aktivitäten unter Ihrem Konto verantwortlich.',
+            'Sie verpflichten sich, korrekte Angaben zu machen und sich nicht als eine andere Person auszugeben.',
+            'Fake-Accounts, Bots, Spam, Betrug, Missbrauch und Manipulationsversuche sind verboten.',
+          ],
         },
+
         {
-          heading: "4. Circles und Mitgliedschaft",
+          heading: '4. Circles und Community',
           content: [
-            "Jeder Nutzer kann einen öffentlichen Circle auf der Plattform erstellen.",
-            "Circles sind offen und kostenlos beizutreten – es gibt keine Teilnahmegebühr.",
-            "Mitglieder eines Circles erhalten Zugang zu dessen öffentlichem Chat.",
-            "Ronda Club kann Circles, die gegen diese Bedingungen verstoßen, entfernen, archivieren oder moderieren."
-          ]
+            'Nutzer können auf der Plattform verfügbare Circles erstellen oder ihnen beitreten.',
+            'Beschreibungen, Orte, Termine und andere Angaben eines Circles müssen korrekt sein.',
+            'Die Mitgliedschaft in einem Circle garantiert nicht, dass andere Mitglieder an einem Offline-Treffen teilnehmen oder auf Nachrichten antworten.',
+            'Nutzer sollten Pläne direkt mit anderen Mitgliedern bestätigen, bevor sie zu einem Offline-Treffen reisen.',
+          ],
         },
+
         {
-          heading: "5. Pflichten des Circle-Erstellers",
+          heading: '5. Verbindungen und Nachrichten',
           content: [
-            "Circle-Ersteller sind dafür verantwortlich, einen genauen Titel, eine Beschreibung, ein Thema und eine Stadt für ihren Circle anzugeben.",
-            "Ersteller dürfen keine irreführenden, unsicheren, illegalen, diskriminierenden, gefälschten oder Spam-Circles erstellen.",
-            "Das Erstellen eines Circles verleiht keine besondere Autorität über andere Mitglieder."
-          ]
+            'Nutzer können über Ronda Club Verbindungsanfragen an andere Mitglieder senden.',
+            'Verbundene Nutzer können private Nachrichten austauschen.',
+            'Private Nachrichten sind für die an der jeweiligen Unterhaltung beteiligten Nutzer bestimmt.',
+            'Nachrichten dürfen nicht für Belästigung, Spam, Betrug oder illegale Aktivitäten genutzt werden.',
+          ],
         },
+
         {
-          heading: "6. Pflichten der Mitglieder",
+          heading: '6. Pflichten der Nutzer',
           content: [
-            "Mitglieder sind für ihre eigenen Nachrichten und Interaktionen im öffentlichen Chat eines Circles verantwortlich.",
-            "Mitglieder müssen sich gegenüber allen anderen Mitgliedern, online und offline, respektvoll verhalten.",
-            "Mitglieder dürfen andere Nutzer nicht belästigen, bedrohen, diskriminieren, verleumden, stalken oder anderweitig schädigen.",
-            "Ronda Club garantiert keine Kompatibilität, Freundschaft oder ein bestimmtes Ergebnis aus dem Beitritt zu einem Circle."
-          ]
+            'Sie sind für Ihre Nachrichten, Profilinformationen, Circles, Interaktionen und veröffentlichten Inhalte verantwortlich.',
+            'Nutzer müssen sich online und offline respektvoll verhalten.',
+            'Belästigung, Bedrohung, Stalking, Diskriminierung, Täuschung oder vorsätzliche Schädigung anderer Nutzer sind verboten.',
+            'Ronda Club garantiert keine Freundschaft, Kompatibilität, Teilnahme oder ein bestimmtes Ergebnis.',
+          ],
         },
+
         {
-          heading: "7. Öffentlicher Chat",
+          heading: '7. Offline-Treffen',
           content: [
-            "Jeder Circle enthält einen öffentlichen Chat, der für alle Mitglieder des Circles zugänglich ist.",
-            "Im Chat eines Circles gepostete Nachrichten sind für alle aktuellen Mitglieder sichtbar.",
-            "Ronda Club bietet kein privates Messaging oder direkte Postfach-Funktionen zwischen Nutzern an.",
-            "Nutzer sind für den Inhalt ihrer Nachrichten verantwortlich. Missbräuchliche, illegale oder schädliche Inhalte sind verboten."
-          ]
+            'Ronda Club kann Nutzern helfen, Personen zu entdecken, die an persönlichen Treffen interessiert sind.',
+            'Sofern nicht ausdrücklich anders angegeben, organisiert oder überwacht Ronda Club solche Treffen nicht und garantiert keine Teilnahme.',
+            'Online-Zusagen oder Circle-Mitgliedschaften garantieren nicht die tatsächliche Anzahl der anwesenden Personen.',
+            'Nutzer sollten vor einem Treffen direkt miteinander kommunizieren.',
+          ],
         },
+
         {
-          heading: "8. Offline-Interaktionen und Risikoübernahme",
+          heading: '8. Sicherheit und Risiko',
           content: [
-            "Ronda Club kann Nutzer verbinden, die sich dann offline treffen möchten. Ronda Club kontrolliert oder überwacht Offline-Interaktionen nicht und übernimmt dafür keine Verantwortung.",
-            "Sie verstehen, dass das Treffen anderer Nutzer persönlich Risiken birgt, einschließlich Verletzungen, Krankheit, Diebstahl oder anderer unerwarteter Situationen.",
-            "Sie übernehmen freiwillig alle Risiken im Zusammenhang mit einer Offline-Interaktion, die aus Ihrer Nutzung der Plattform resultiert.",
-            "Ronda Club ist nicht für die Handlungen, Unterlassungen oder das Verhalten eines Nutzers online oder offline verantwortlich."
-          ]
+            'Persönliche Treffen mit anderen Nutzern können Risiken beinhalten.',
+            'Nutzer sollten angemessene Sicherheitsmaßnahmen treffen und neue Personen vorzugsweise an geeigneten öffentlichen Orten treffen.',
+            'Ronda Club garantiert nicht die Identität, Zuverlässigkeit, Absichten oder das Verhalten eines Nutzers.',
+          ],
         },
+
         {
-          heading: "9. Verbotenes Verhalten",
+          heading: '9. Verbotenes Verhalten',
           content: [
-            "Folgendes ist auf der Plattform strengstens verboten: Belästigung, Bedrohung, Hassrede, Rassismus, Sexismus, Diskriminierung, Gewalt, Stalking, Betrug, Identitätsmissbrauch, illegale Aktivitäten und das Teilen privater Informationen ohne Zustimmung.",
-            "Circles, die für Spam, Werbung, politische Propaganda, religiöse Rekrutierung oder kommerzielle Zwecke ohne Genehmigung genutzt werden, sind verboten.",
-            "Ronda Club kann unsichere, gefälschte, missbräuchliche, diskriminierende oder Spam-Circles ohne vorherige Ankündigung entfernen."
-          ]
+            'Belästigung, Bedrohung, Hassrede, Rassismus, Sexismus, Diskriminierung, Gewalt, Stalking, Betrug und illegale Aktivitäten sind verboten.',
+            'Private Informationen anderer Personen dürfen nicht ohne Zustimmung veröffentlicht werden.',
+            'Spam, automatisierte Aktivitäten und irreführende Circles sind verboten.',
+          ],
         },
+
         {
-          heading: "10. Keine Haftung für Nutzerverhalten",
+          heading: '10. Nutzergenerierte Inhalte',
           content: [
-            "Ronda Club garantiert nicht die Identität, den Hintergrund, die Zuverlässigkeit, Ehrlichkeit oder das Verhalten eines Nutzers.",
-            "Jede Interaktion zwischen Nutzern – ob online oder offline – findet ausschließlich zwischen diesen Nutzern statt.",
-            "Ronda Club haftet nicht für Streitigkeiten, Schäden, Verluste, Verletzungen oder andere Schäden, die aus Nutzerinteraktionen resultieren."
-          ]
+            'Ronda Club enthält von Nutzern erstellte Inhalte wie Profile, Circle-Informationen und Nachrichten.',
+            'Sie bleiben für die von Ihnen veröffentlichten Inhalte verantwortlich.',
+            'Sie gewähren Ronda Club eine nicht-exklusive, gebührenfreie Lizenz, Inhalte soweit erforderlich zu speichern, anzuzeigen und zu verarbeiten, um die Plattform zu betreiben, zu sichern und zu moderieren.',
+          ],
         },
+
         {
-          heading: "11. Inhalte und geistiges Eigentum",
+          heading: '11. Geistiges Eigentum',
           content: [
-            "Sie bleiben Eigentümer der von Ihnen geposteten Inhalte, gewähren Ronda Club jedoch eine weltweite, nicht-exklusive, gebührenfreie Lizenz zur Anzeige und Nutzung Ihrer Inhalte für den Betrieb der Plattform.",
-            "Name, Logo, Design, Software und Branding von Ronda Club bleiben Eigentum von Ronda Club oder seinen Lizenzgebern."
-          ]
+            'Name, Marke, Software, Benutzeroberfläche und Design von Ronda Club bleiben Eigentum von Ronda Club oder seinen Lizenzgebern.',
+          ],
         },
+
         {
-          heading: "12. Datenschutz",
+          heading: '12. Haftungsbeschränkung',
           content: [
-            "Die Erhebung und Nutzung personenbezogener Daten sind in unserer Datenschutzerklärung beschrieben.",
-            "Wir halten uns an geltende Datenschutzgesetze, einschließlich der EU-Datenschutz-Grundverordnung (DSGVO).",
-            "Nutzer können Zugang, Berichtigung, Löschung oder Übertragbarkeit ihrer personenbezogenen Daten beantragen unter: cyril.ragonet@gmail.com.",
-            "Wir verkaufen keine personenbezogenen Daten der Nutzer."
-          ]
+            'Im gesetzlich zulässigen Umfang haftet Ronda Club nicht für indirekte, zufällige, besondere oder Folgeschäden.',
+            'Ronda Club ist nicht für Handlungen oder Verhalten anderer Nutzer oder Dritter verantwortlich.',
+            'Die Plattform wird ohne Garantie eines unterbrechungsfreien Zugangs oder bestimmter Ergebnisse bereitgestellt.',
+          ],
         },
+
         {
-          heading: "13. Haftungsbeschränkung",
+          heading: '13. Sperrung und Kündigung',
           content: [
-            "Im größtmöglichen gesetzlich zulässigen Umfang haftet Ronda Club nicht für indirekte, zufällige, besondere, Folge- oder Strafschäden.",
-            "Ronda Club haftet nicht für Nutzerverhalten, Offline-Vorfälle oder Schäden durch Dritte.",
-            "Die Plattform wird wie besehen bereitgestellt, ohne Garantie auf unterbrechungsfreien Zugang oder bestimmte Ergebnisse."
-          ]
+            'Ronda Club kann Konten einschränken, sperren oder kündigen, wenn diese Bedingungen verletzt werden oder ein Sicherheits- oder Rechtsrisiko besteht.',
+            'Sie können die Nutzung von Ronda Club jederzeit einstellen.',
+          ],
         },
+
         {
-          heading: "14. Kontosperrung und Kündigung",
+          heading: '14. Änderungen',
           content: [
-            "Wir können Ihr Konto sperren oder kündigen, wenn Sie gegen diese Bedingungen verstoßen, die Plattform missbrauchen, unsichere Circles erstellen, Nutzer belästigen oder der Community schaden.",
-            "Sie können die Plattform jederzeit nicht mehr nutzen."
-          ]
+            'Diese Bedingungen können aktualisiert werden, wenn sich die Plattform, Rechtslage oder unsere Praktiken ändern.',
+          ],
         },
+
         {
-          heading: "15. Änderungen dieser Bedingungen",
+          heading: '15. Anwendbares Recht',
           content: [
-            "Wir können diese Bedingungen von Zeit zu Zeit aktualisieren. Bei wesentlichen Änderungen können wir Nutzer über die Plattform oder per E-Mail benachrichtigen.",
-            "Die weitere Nutzung der Plattform nach Änderungen bedeutet, dass Sie die aktualisierten Bedingungen akzeptieren."
-          ]
+            'Diese Bedingungen unterliegen dem anwendbaren französischen und europäischen Recht, vorbehaltlich zwingender Verbraucherschutzvorschriften.',
+          ],
         },
+      ],
+
+      privacyTitle: 'Datenschutzerklärung',
+
+      privacyIntro:
+        'Diese Datenschutzerklärung erläutert, welche personenbezogenen Daten Ronda Club verarbeitet, warum sie verwendet werden und welche Rechte Nutzer haben.',
+
+      privacy: [
         {
-          heading: "16. Anwendbares Recht und Streitigkeiten",
+          heading: '1. Erhobene Informationen',
           content: [
-            "Diese Bedingungen unterliegen dem geltenden französischen und europäischen Recht, sofern nicht zwingende Verbraucherschutzregeln etwas anderes vorsehen.",
-            "Im Streitfall verpflichten sich Nutzer, Ronda Club zunächst in gutem Glauben zu kontaktieren, um eine gütliche Lösung zu suchen."
-          ]
+            'Je nach Nutzung können wir Google-Konto-ID, E-Mail-Adresse, Namen, Anzeigenamen und Profilbild verarbeiten.',
+            'Wir können freiwillig bereitgestellte Profilinformationen wie Stadt, Biografie, Geschlecht, Interessen, Absichten und Bilder verarbeiten.',
+            'Wir verarbeiten Community-Aktivitäten wie Circles, Verbindungsanfragen, akzeptierte Verbindungen, Nachrichten und Events.',
+            'Technische Informationen können verarbeitet werden, soweit sie für Authentifizierung, Sicherheit und Betrieb erforderlich sind.',
+          ],
         },
+
         {
-          heading: "17. Kontakt",
+          heading: '2. Google Sign-In',
           content: [
-            "Für Fragen, Beschwerden, Kontolöschung oder rechtliche Hinweise kontaktieren Sie uns unter: cyril.ragonet@gmail.com.",
-            "Anbieter: Ronda Club.",
-            "Stand: April 2026."
-          ]
-        }
-      ]
-    }
+            'Ronda Club ermöglicht die Anmeldung über Google Sign-In.',
+            'Google kann dabei grundlegende Kontoinformationen wie Name, E-Mail-Adresse, Profilbild und eine eindeutige Konto-ID bereitstellen.',
+            'Ronda Club erhält oder speichert Ihr Google-Passwort nicht.',
+          ],
+        },
+
+        {
+          heading: '3. Verwendung der Daten',
+          content: [
+            'Daten werden zur Verwaltung von Konten, Profilen, Circles, Verbindungen und Nachrichten verwendet.',
+            'Sie können außerdem zur Sicherheit, Missbrauchsprävention, Fehlerbehebung, Moderation und Verbesserung von Ronda Club verwendet werden.',
+            'Ronda Club verkauft keine personenbezogenen Daten von Nutzern.',
+          ],
+        },
+
+        {
+          heading: '4. Für andere Nutzer sichtbare Informationen',
+          content: [
+            'Ronda Club ist eine soziale Plattform. Informationen, die Sie bewusst veröffentlichen, können für andere Nutzer sichtbar sein.',
+            'Veröffentlichen Sie keine Informationen, die Sie nicht mit anderen teilen möchten.',
+            'Direktnachrichten sind für die Nutzer bestimmt, die an der jeweiligen Unterhaltung beteiligt sind.',
+          ],
+        },
+
+        {
+          heading: '5. Dienstleister',
+          content: [
+            'Ronda Club verwendet Google Firebase für Authentifizierung, Datenbank- und Speicherfunktionen.',
+            'Google Sign-In wird zur Anmeldung verwendet.',
+            'Netlify wird für Hosting und Server-Infrastruktur verwendet.',
+          ],
+        },
+
+        {
+          heading: '6. Weitergabe von Daten',
+          content: [
+            'Ronda Club verkauft keine personenbezogenen Daten an Werbetreibende oder Datenhändler.',
+            'Technische Dienstleister können Daten soweit erforderlich zur Bereitstellung ihrer Dienste verarbeiten.',
+            'Informationen können offengelegt werden, wenn dies gesetzlich erforderlich oder zum Schutz der Plattform oder ihrer Nutzer notwendig ist.',
+          ],
+        },
+
+        {
+          heading: '7. Datensicherheit',
+          content: [
+            'Wir verwenden angemessene technische und organisatorische Maßnahmen zum Schutz personenbezogener Daten.',
+            'Administrative Systeme und serverseitige Zugangsdaten werden geschützt.',
+            'Kein Internetdienst kann absolute Sicherheit garantieren.',
+          ],
+        },
+
+        {
+          heading: '8. Speicherdauer',
+          content: [
+            'Daten werden nur so lange gespeichert, wie dies für den Betrieb, Sicherheit, Betrugsprävention oder gesetzliche Verpflichtungen erforderlich ist.',
+            'Nicht mehr benötigte Daten können gelöscht oder anonymisiert werden.',
+          ],
+        },
+
+        {
+          heading: '9. Konto- und Datenlöschung',
+          content: [
+            'Nutzer können ihr Ronda-Club-Konto dauerhaft über ihr Profil löschen.',
+            'Anweisungen zur Kontolöschung finden Sie unter https://ronda-club.com/delete-account',
+            'Nutzer, die keinen Zugriff auf ihr Konto haben, können unter cyril.ragonet@gmail.com Unterstützung anfordern.',
+            'Nach Abschluss eines berechtigten Löschvorgangs werden die mit dem Konto verbundenen personenbezogenen Daten gelöscht oder anonymisiert, soweit keine gesetzliche oder berechtigte Aufbewahrungspflicht besteht.',
+          ],
+        },
+
+        {
+          heading: '10. Datenschutzrechte',
+          content: [
+            'Je nach Wohnort können Nutzer Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung, Widerspruch und Datenübertragbarkeit haben.',
+            'Nutzer im Europäischen Wirtschaftsraum können ihre Rechte gemäß DSGVO ausüben.',
+            'Anfragen können an cyril.ragonet@gmail.com gesendet werden.',
+          ],
+        },
+
+        {
+          heading: '11. Internationale Nutzer',
+          content: [
+            'Ronda Club wird international genutzt. Daten können daher über technische Infrastruktur außerhalb Ihres Wohnsitzlandes verarbeitet werden.',
+          ],
+        },
+
+        {
+          heading: '12. Nur für Erwachsene',
+          content: [
+            'Ronda Club ist ausschließlich für Personen ab 18 Jahren bestimmt.',
+            'Personen unter 18 Jahren dürfen kein Ronda-Club-Konto erstellen oder nutzen.',
+          ],
+        },
+
+        {
+          heading: '13. Änderungen',
+          content: [
+            'Diese Datenschutzerklärung kann aktualisiert werden, wenn sich die Plattform, unsere Praktiken oder rechtliche Anforderungen ändern.',
+          ],
+        },
+
+        {
+          heading: '14. Kontakt',
+          content: [
+            'Datenschutzanfragen, Beschwerden und Löschanfragen: cyril.ragonet@gmail.com.',
+            'Dienst: Ronda Club.',
+            'Website: https://ronda-club.com',
+          ],
+        },
+      ],
+
+      lastUpdated: 'Stand: September 2026.',
+    },
   }
 
-  const current = terms[language]
+  const current = content[language]
+
+  const renderSections = (sections) => (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '28px',
+      }}
+    >
+      {sections.map((section, idx) => (
+        <div
+          key={section.heading}
+          style={{
+            paddingBottom: '28px',
+            borderBottom:
+              idx < sections.length - 1
+                ? `1px solid ${BORDER}`
+                : 'none',
+          }}
+        >
+          <h2
+            style={{
+              fontSize: '0.95rem',
+              fontWeight: 700,
+              color: CORAL,
+              margin: '0 0 10px',
+            }}
+          >
+            {section.heading}
+          </h2>
+
+          {section.content.map((text) => (
+            <p
+              key={text}
+              style={{
+                fontSize: '0.88rem',
+                color: '#706965',
+                lineHeight: 1.65,
+                margin: '0 0 7px',
+              }}
+            >
+              {text}
+            </p>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: BEIGE,
-      display: 'flex',
-      alignItems: 'flex-start',
-      justifyContent: 'center',
-      padding: '40px 16px 60px',
-    }}>
-      <div style={{
-        position: 'relative',
-        width: '100%',
-        maxWidth: '820px',
-        backgroundColor: '#FFFFFF',
-        borderRadius: '24px',
-        border: `1px solid ${BORDER}`,
-        padding: '52px 48px 44px',
-        boxShadow: '0 4px 24px rgba(43, 39, 37, 0.05)',
-      }}>
-        {/* Back button */}
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: BEIGE,
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        padding: '40px 16px 60px',
+      }}
+    >
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: '820px',
+          backgroundColor: '#FFFFFF',
+          borderRadius: '24px',
+          border: `1px solid ${BORDER}`,
+          padding: '52px 48px 44px',
+          boxShadow: '0 4px 24px rgba(43, 39, 37, 0.05)',
+        }}
+      >
         <button
           onClick={() => router.back()}
           style={{
@@ -343,18 +677,20 @@ export default function TermsPage() {
             cursor: 'pointer',
             padding: '6px 14px',
             borderRadius: '999px',
-            transition: 'background 0.2s',
           }}
-          onMouseEnter={e => e.currentTarget.style.background = CORAL_PALE}
-          onMouseLeave={e => e.currentTarget.style.background = '#F5F0EB'}
         >
           <ArrowLeft size={14} />
           Back
         </button>
 
-        {/* Language toggle */}
         <button
-          onClick={() => setLanguage(language === 'en' ? 'de' : 'en')}
+          onClick={() =>
+            setLanguage(
+              language === 'en'
+                ? 'de'
+                : 'en'
+            )
+          }
           style={{
             position: 'absolute',
             top: '20px',
@@ -370,66 +706,138 @@ export default function TermsPage() {
             fontWeight: 600,
             color: CORAL,
             cursor: 'pointer',
-            transition: 'background 0.2s',
           }}
-          onMouseEnter={e => e.currentTarget.style.background = '#FFE0D8'}
-          onMouseLeave={e => e.currentTarget.style.background = CORAL_PALE}
         >
           <Globe size={13} />
-          {language === 'en' ? 'Auf Deutsch' : 'English'}
+
+          {language === 'en'
+            ? 'Auf Deutsch'
+            : 'English'}
         </button>
 
-        {/* Title */}
-        <h1 style={{
-          fontSize: '1.6rem',
-          fontWeight: 700,
-          color: '#2B2725',
-          textAlign: 'center',
-          marginBottom: '36px',
-          marginTop: '4px',
-          letterSpacing: '-0.02em',
-        }}>
+        <h1
+          style={{
+            fontSize: '1.7rem',
+            fontWeight: 700,
+            color: '#2B2725',
+            textAlign: 'center',
+            marginBottom: '12px',
+            marginTop: '4px',
+            letterSpacing: '-0.02em',
+          }}
+        >
           {current.title}
         </h1>
 
-        {/* Sections */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-          {current.sections.map((section, idx) => (
-            <div key={idx} style={{
-              paddingBottom: '28px',
-              borderBottom: idx < current.sections.length - 1 ? `1px solid ${BORDER}` : 'none',
-            }}>
-              <h2 style={{
-                fontSize: '0.95rem',
-                fontWeight: 700,
-                color: CORAL,
-                marginBottom: '10px',
-                margin: '0 0 10px',
-              }}>
-                {section.heading}
-              </h2>
-              {section.content.map((text, i) => (
-                <p key={i} style={{
-                  fontSize: '0.88rem',
-                  color: '#706965',
-                  lineHeight: 1.6,
-                  margin: '0 0 6px',
-                }}>
-                  {text}
-                </p>
-              ))}
-            </div>
-          ))}
+        <p
+          style={{
+            maxWidth: '620px',
+            margin: '0 auto 42px',
+            textAlign: 'center',
+            color: '#817A75',
+            fontSize: '0.86rem',
+            lineHeight: 1.6,
+          }}
+        >
+          {current.intro}
+        </p>
+
+        <div
+          style={{
+            padding: '14px 18px',
+            marginBottom: '30px',
+            borderRadius: '14px',
+            background: CORAL_PALE,
+          }}
+        >
+          <strong
+            style={{
+              color: CORAL,
+              fontSize: '1rem',
+            }}
+          >
+            {current.termsTitle}
+          </strong>
         </div>
 
-        {/* Footer */}
-        <div style={{
-          marginTop: '32px',
-          paddingTop: '18px',
-          borderTop: `1px solid ${BORDER}`,
-          textAlign: 'center',
-        }}>
-          <p style={{ fontSize: '0.72rem', color: '#B5ADA6', margin: 0 }}>
+        {renderSections(current.terms)}
+
+        <div
+          style={{
+            height: '1px',
+            background: BORDER,
+            margin: '45px 0',
+          }}
+        />
+
+        <div
+          style={{
+            padding: '18px',
+            marginBottom: '12px',
+            borderRadius: '14px',
+            background: '#2B2725',
+          }}
+        >
+          <strong
+            style={{
+              display: 'block',
+              color: '#FFFFFF',
+              fontSize: '1.05rem',
+              marginBottom: '6px',
+            }}
+          >
+            {current.privacyTitle}
+          </strong>
+
+          <p
+            style={{
+              color: '#D8D1CC',
+              fontSize: '0.8rem',
+              lineHeight: 1.5,
+              margin: 0,
+            }}
+          >
+            {current.privacyIntro}
+          </p>
+        </div>
+
+        {renderSections(current.privacy)}
+
+        <div
+          style={{
+            marginTop: '36px',
+            padding: '18px',
+            background: '#FFF8F2',
+            borderRadius: '14px',
+            textAlign: 'center',
+          }}
+        >
+          <p
+            style={{
+              color: '#817A75',
+              fontSize: '0.76rem',
+              margin: 0,
+            }}
+          >
+            {current.lastUpdated}
+          </p>
+        </div>
+
+        <div
+          style={{
+            marginTop: '24px',
+            paddingTop: '18px',
+            borderTop: `1px solid ${BORDER}`,
+            textAlign: 'center',
+          }}
+        >
+          <p
+            style={{
+              fontSize: '0.72rem',
+              color: '#B5ADA6',
+              margin: 0,
+            }}
+          >
             © {new Date().getFullYear()} Ronda Club. All rights reserved.
           </p>
         </div>
