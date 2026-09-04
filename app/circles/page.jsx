@@ -12,7 +12,7 @@ import {
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/common/Footer'
 
-import { listOpenCircles } from '@/lib/circleService'
+import { listOpenCircles, getCircleMembers } from '@/lib/circleService'
 import { getDisplayName } from '@/lib/users'
 import { onAuthChange } from '@/lib/auth'
 import { db } from '@/lib/firebase'
@@ -152,6 +152,49 @@ function buildCircleName(circle) {
 
 
 /* ==========================================================================
+   MEMBER PREVIEW
+============================================================================ */
+
+function getRandomMemberPreview(members = [], max = 4) {
+  const list =
+    Array.isArray(members)
+      ? [...members]
+      : []
+
+  for (let i = list.length - 1; i > 0; i -= 1) {
+    const j =
+      Math.floor(
+        Math.random() * (i + 1)
+      )
+
+    ;[list[i], list[j]] =
+      [list[j], list[i]]
+  }
+
+  return list
+    .slice(0, max)
+    .map((member) => ({
+      uid:
+        member.uid ||
+        member.id ||
+        member.user_id ||
+        '',
+
+      name:
+        member.displayName ||
+        member.name ||
+        member.username ||
+        'Ronda member',
+
+      photo:
+        member.photoURL ||
+        member.photo_url ||
+        '/point.png',
+    }))
+}
+
+
+/* ==========================================================================
    PAGE
 ============================================================================ */
 
@@ -215,7 +258,72 @@ export default function CirclesPage() {
             ? data
             : []
 
-        setCircles(list)
+        /*
+         * Real member counts
+         *
+         * Same source of truth as the Circle detail page:
+         * getCircleMembers(circle.id)
+         */
+
+        const circlesWithRealCounts =
+          await Promise.all(
+            list.map(
+              async (circle) => {
+                try {
+                  const members =
+                    await getCircleMembers(
+                      circle.id
+                    )
+
+                  return {
+                    ...circle,
+
+                    real_members_count:
+                      Array.isArray(members)
+                        ? members.length
+                        : 0,
+
+                    preview_members:
+                      getRandomMemberPreview(
+                        members,
+                        9
+                      ),
+                  }
+                } catch (err) {
+                  console.error(
+                    `Error loading members for Circle ${circle.id}:`,
+                    err
+                  )
+
+                  return {
+                    ...circle,
+
+                    real_members_count:
+                      Number(
+                        circle.members_count ||
+                        0
+                      ),
+
+                    preview_members: [],
+                  }
+                }
+              }
+            )
+          )
+
+        setCircles(
+          circlesWithRealCounts.sort(
+            (a, b) =>
+              Number(
+                b.real_members_count ||
+                0
+              ) -
+              Number(
+                a.real_members_count ||
+                0
+              )
+          )
+        )
 
 
         /*
@@ -634,9 +742,17 @@ export default function CirclesPage() {
 
                   const count =
                     Number(
-                      circle.members_count ||
+                      circle.real_members_count ??
+                      circle.members_count ??
                       0
                     )
+
+                  const previewMembers =
+                    Array.isArray(
+                      circle.preview_members
+                    )
+                      ? circle.preview_members
+                      : []
 
                   const creator =
                     creatorNames[
@@ -725,6 +841,46 @@ export default function CirclesPage() {
                           and connect privately.
                         </p>
                       )}
+
+
+                      {/* MEMBER PREVIEW */}
+
+                      <div className="circle-social-proof">
+
+                        <div className="circle-avatars">
+                          {previewMembers.map(
+                            (member, index) => (
+                              <img
+                                key={
+                                  member.uid ||
+                                  `${circle.id}-${index}`
+                                }
+                                src={
+                                  member.photo ||
+                                  '/point.png'
+                                }
+                                alt={
+                                  member.name ||
+                                  'Ronda member'
+                                }
+                                className="circle-avatar"
+                                onError={(event) => {
+                                  event.currentTarget.src =
+                                    '/point.png'
+                                }}
+                              />
+                            )
+                          )}
+                        </div>
+
+                        <span className="circle-social-count">
+                          {count}{' '}
+                          {count === 1
+                            ? 'person'
+                            : 'people'}
+                        </span>
+
+                      </div>
 
 
                       {/* FOOTER */}
@@ -1586,6 +1742,100 @@ export default function CirclesPage() {
 
 
         /* ==================================================================
+           SOCIAL PROOF
+        ================================================================== */
+
+        .circle-social-proof {
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            space-between;
+
+          gap:
+            12px;
+
+          margin:
+            2px 0 14px;
+        }
+
+
+        .circle-avatars {
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          min-height:
+            34px;
+        }
+
+
+        .circle-avatar {
+          width:
+            34px;
+
+          height:
+            34px;
+
+          flex:
+            0 0 34px;
+
+          object-fit:
+            cover;
+
+          border-radius:
+            50%;
+
+          border:
+            2px solid #FFFFFF;
+
+          background:
+            #F6F1ED;
+
+          margin-left:
+            -8px;
+
+          box-sizing:
+            border-box;
+
+          box-shadow:
+            0 2px 7px
+            rgba(
+              43,
+              39,
+              37,
+              0.08
+            );
+        }
+
+
+        .circle-avatar:first-child {
+          margin-left:
+            0;
+        }
+
+
+        .circle-social-count {
+          font-size:
+            0.7rem;
+
+          font-weight:
+            650;
+
+          color:
+            #706965;
+
+          white-space:
+            nowrap;
+        }
+
+
+        /* ==================================================================
            CARD BOTTOM
         ================================================================== */
 
@@ -1922,6 +2172,24 @@ export default function CirclesPage() {
           .circle-description {
             font-size:
               0.76rem;
+          }
+
+
+          .circle-avatar {
+            width:
+              31px;
+
+            height:
+              31px;
+
+            flex-basis:
+              31px;
+          }
+
+
+          .circle-social-count {
+            font-size:
+              0.67rem;
           }
 
 
