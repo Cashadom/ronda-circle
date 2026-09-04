@@ -1,7 +1,6 @@
 /* ─── Page principale ─────────────────────────────────────────────────────── */
 
 .home {
-  background: #FFFFFF;
   min-height: 100vh;
   width: 100%;
   max-width: 100vw;
@@ -11,7 +10,7 @@
   flex-direction: column;
 
   position: relative;
-  isolation: isolate;
+  background: #FFFFFF;
 }
 
 
@@ -30,7 +29,7 @@
   opacity: 0.10;
 
   pointer-events: none;
-  z-index: -2;
+  z-index: 0;
 }
 
 
@@ -44,7 +43,7 @@
   background: rgba(255, 255, 255, 0.18);
 
   pointer-events: none;
-  z-index: -1;
+  z-index: 1;
 }
 
 
@@ -59,7 +58,7 @@
   box-sizing: border-box;
 
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 
@@ -67,6 +66,8 @@
 
 .hero-section {
   padding: 60px 0 16px;
+  position: relative;
+  z-index: 2;
 }
 
 .hero-image {
@@ -88,6 +89,9 @@
   padding: 16px 0 20px;
 
   background: transparent;
+
+  position: relative;
+  z-index: 2;
 }
 
 .section-title {
@@ -131,6 +135,9 @@
   padding: 0 0 24px;
   background: transparent;
   width: 100%;
+
+  position: relative;
+  z-index: 2;
 }
 
 .circle-grid {
@@ -165,6 +172,9 @@
   padding: 24px 0 0;
 
   flex-wrap: wrap;
+
+  position: relative;
+  z-index: 2;
 }
 
 .btn-primary {
@@ -256,6 +266,9 @@
 .spacer {
   height: 40px;
   background: transparent;
+
+  position: relative;
+  z-index: 2;
 }
 
 
