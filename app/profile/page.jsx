@@ -26,6 +26,7 @@ import {
 } from 'firebase/firestore'
 
 import { db } from '@/lib/firebase'
+import { getCircleMembers } from '@/lib/circleService'
 
 
 const INTENTION_OPTIONS = [
@@ -102,6 +103,11 @@ export default function ProfilePage() {
     setCreatedCircles,
   ] = useState([])
 
+  const [
+    potentialPeopleCount,
+    setPotentialPeopleCount,
+  ] = useState(0)
+
   const [editing, setEditing] =
     useState(false)
 
@@ -172,6 +178,7 @@ export default function ProfilePage() {
   async function loadCreatedCircles(uid) {
     if (!uid) {
       setCreatedCircles([])
+      setPotentialPeopleCount(0)
       return
     }
 
@@ -194,7 +201,7 @@ export default function ProfilePage() {
           circlesQuery
         )
 
-      const circles =
+      const baseCircles =
         snapshot.docs
           .map(
             (circleDoc) => ({
@@ -209,29 +216,96 @@ export default function ProfilePage() {
               circle.status !==
               'archived'
           )
-          .sort(
-            (a, b) => {
-              const aTime =
-                a.created_at
-                  ?.toDate?.()
-                  ?.getTime?.() ||
-                0
 
-              const bTime =
-                b.created_at
-                  ?.toDate?.()
-                  ?.getTime?.() ||
-                0
+      const memberIds =
+        new Set()
 
-              return (
-                bTime -
-                aTime
-              )
+      const circles =
+        await Promise.all(
+          baseCircles.map(
+            async (circle) => {
+              try {
+                const members =
+                  await getCircleMembers(
+                    circle.id
+                  )
+
+                const realMembers =
+                  Array.isArray(members)
+                    ? members
+                    : []
+
+                realMembers.forEach(
+                  (member) => {
+                    const memberUid =
+                      member.uid ||
+                      member.id ||
+                      member.user_id ||
+                      ''
+
+                    if (
+                      memberUid &&
+                      memberUid !== uid
+                    ) {
+                      memberIds.add(
+                        memberUid
+                      )
+                    }
+                  }
+                )
+
+                return {
+                  ...circle,
+                  real_members_count:
+                    realMembers.length,
+                }
+
+              } catch (err) {
+                console.error(
+                  `Error loading members for Circle ${circle.id}:`,
+                  err
+                )
+
+                return {
+                  ...circle,
+                  real_members_count:
+                    Number(
+                      circle.members_count ||
+                      0
+                    ),
+                }
+              }
             }
           )
+        )
+
+      circles.sort(
+        (a, b) => {
+          const aTime =
+            a.created_at
+              ?.toDate?.()
+              ?.getTime?.() ||
+            0
+
+          const bTime =
+            b.created_at
+              ?.toDate?.()
+              ?.getTime?.() ||
+            0
+
+          return (
+            bTime -
+            aTime
+          )
+        }
+      )
 
       setCreatedCircles(
         circles
+      )
+
+      setPotentialPeopleCount(
+        memberIds.size
       )
 
     } catch (err) {
@@ -241,6 +315,7 @@ export default function ProfilePage() {
       )
 
       setCreatedCircles([])
+      setPotentialPeopleCount(0)
     }
   }
 
@@ -1159,7 +1234,11 @@ export default function ProfilePage() {
                 </p>
 
                 <h2>
-                  Circles you created
+                  You have potentially connected{' '}
+                  {potentialPeopleCount}{' '}
+                  {potentialPeopleCount === 1
+                    ? 'person'
+                    : 'people'}
                 </h2>
 
               </div>
@@ -1217,7 +1296,8 @@ export default function ProfilePage() {
 
                     const count =
                       Number(
-                        circle.members_count ||
+                        circle.real_members_count ??
+                        circle.members_count ??
                         0
                       )
 
