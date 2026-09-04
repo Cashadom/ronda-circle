@@ -255,10 +255,16 @@ export default function TermsPage() {
         {
           heading: '9. Account and Data Deletion',
           content: [
+<<<<<<< HEAD
+            'Users may request deletion of their Ronda Club account and associated personal data by contacting us at cyril.ragonet@gmail.com.',
+            'When an eligible deletion request is completed, personal data associated with the account will be deleted or anonymised, except information that we are legally required or legitimately permitted to retain.',
+            'Additional account deletion options may be made available through the Platform.',
+=======
             'Users may permanently delete their Ronda Club account from their profile.',
             'Account deletion instructions are available at https://ronda-club.com/delete-account',
             'Users who cannot access their account may request assistance by contacting us at cyril.ragonet@gmail.com.',
             'When an eligible deletion request is completed, personal data associated with the account will be deleted or anonymised, except information that we are legally required or legitimately permitted to retain.',
+>>>>>>> 380edef (Update terms privacy and account deletion)
           ],
         },
 
@@ -535,10 +541,16 @@ export default function TermsPage() {
         {
           heading: '9. Konto- und Datenlöschung',
           content: [
+<<<<<<< HEAD
+            'Nutzer können die Löschung ihres Ronda-Club-Kontos und der zugehörigen personenbezogenen Daten unter cyril.ragonet@gmail.com beantragen.',
+            'Nach Abschluss eines berechtigten Löschantrags werden personenbezogene Daten gelöscht oder anonymisiert, soweit keine gesetzliche oder berechtigte Aufbewahrungspflicht besteht.',
+            'Weitere Löschoptionen können künftig direkt über die Plattform bereitgestellt werden.',
+=======
             'Nutzer können ihr Ronda-Club-Konto dauerhaft über ihr Profil löschen.',
             'Anweisungen zur Kontolöschung finden Sie unter https://ronda-club.com/delete-account',
             'Nutzer, die keinen Zugriff auf ihr Konto haben, können unter cyril.ragonet@gmail.com Unterstützung anfordern.',
             'Nach Abschluss eines berechtigten Löschvorgangs werden die mit dem Konto verbundenen personenbezogenen Daten gelöscht oder anonymisiert, soweit keine gesetzliche oder berechtigte Aufbewahrungspflicht besteht.',
+>>>>>>> 380edef (Update terms privacy and account deletion)
           ],
         },
 
