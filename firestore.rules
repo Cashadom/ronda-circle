@@ -1,6 +1,4 @@
-from pathlib import Path
-
-rules = r"""rules_version = '2';
+rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -13,30 +11,53 @@ service cloud.firestore {
       return request.auth.uid;
     }
 
+
+    // ─────────────────────────────────────────────────────────────────────
     // USERS
-    // Public profile reading is kept because Ronda displays people publicly.
-    // A user may only modify their own user document.
+    // Les profils Ronda restent visibles publiquement.
+    // Un utilisateur ne peut modifier que son propre profil.
+    // ─────────────────────────────────────────────────────────────────────
+
     match /users/{userId} {
+
       allow read: if true;
 
       allow create, update, delete: if isSignedIn()
         && uid() == userId;
 
+
+      // ───────────────────────────────────────────────────────────────────
+      // USER CIRCLES
+      // users/{userId}/circles/{circleId}
+      //
+      // Nécessaire lors de la création / inscription / sortie d'un Circle.
+      // Firestore n'hérite pas automatiquement des règles du parent.
+      // ───────────────────────────────────────────────────────────────────
+
       match /circles/{circleId} {
-        allow read: if true;
+
+        allow read: if isSignedIn()
+          && uid() == userId;
 
         allow create, update, delete: if isSignedIn()
           && uid() == userId;
       }
     }
 
+
+    // ─────────────────────────────────────────────────────────────────────
     // CONNECTIONS
-    // Connection data and private messages are NOT public.
+    // Les connexions restent privées entre les deux participants.
+    // ─────────────────────────────────────────────────────────────────────
+
     match /connections/{connectionId} {
+
       allow read: if isSignedIn()
         && resource.data.participants is list
         && uid() in resource.data.participants;
 
+
+      // Création d'une demande de connexion
       allow create: if isSignedIn()
         && request.resource.data.participants is list
         && request.resource.data.participants.size() == 2
@@ -44,16 +65,28 @@ service cloud.firestore {
         && request.resource.data.requestedBy == uid()
         && request.resource.data.status == 'pending';
 
+
+      // Modification uniquement par l'un des participants
       allow update: if isSignedIn()
         && resource.data.participants is list
         && uid() in resource.data.participants;
 
+
+      // Suppression uniquement d'une demande encore en attente
       allow delete: if isSignedIn()
         && resource.data.participants is list
         && uid() in resource.data.participants
         && resource.data.status == 'pending';
 
+
+      // ───────────────────────────────────────────────────────────────────
+      // PRIVATE MESSAGES
+      // connections/{connectionId}/messages/{messageId}
+      // ───────────────────────────────────────────────────────────────────
+
       match /messages/{messageId} {
+
+        // Lecture uniquement par les participants
         allow read: if isSignedIn()
           && get(
             /databases/$(database)/documents/connections/$(connectionId)
@@ -62,6 +95,8 @@ service cloud.firestore {
             /databases/$(database)/documents/connections/$(connectionId)
           ).data.participants;
 
+
+        // Envoi uniquement après connexion acceptée
         allow create: if isSignedIn()
           && get(
             /databases/$(database)/documents/connections/$(connectionId)
@@ -74,26 +109,59 @@ service cloud.firestore {
           && request.resource.data.text.size() > 0
           && request.resource.data.text.size() <= 1000;
 
+
         allow update, delete: if false;
       }
     }
 
+
+    // ─────────────────────────────────────────────────────────────────────
     // PUBLIC AGGREGATED DASHBOARD
-    // /dashboard can read ONLY aggregate statistics from here.
+    // Utilisé notamment par /dashboard et les statistiques publiques.
+    // ─────────────────────────────────────────────────────────────────────
+
     match /public_stats/{documentId} {
+
       allow read: if true;
+
       allow write: if false;
     }
 
+
+    // ─────────────────────────────────────────────────────────────────────
     // CIRCLES
+    // ─────────────────────────────────────────────────────────────────────
+
     match /circles/{circleId} {
+
+      // Les Circles sont visibles publiquement
       allow read: if true;
 
-      allow create: if isSignedIn();
+
+      // Création uniquement par un utilisateur connecté
+      // qui se déclare lui-même comme créateur.
+      allow create: if isSignedIn()
+        && request.resource.data.created_by == uid();
+
+
+      // Nécessaire notamment pour members_count lors des Join / Leave
       allow update: if isSignedIn();
+
+
+      // Pas de suppression directe actuellement
       allow delete: if false;
 
+
+      // ───────────────────────────────────────────────────────────────────
+      // CIRCLE MEMBERS
+      // circles/{circleId}/members/{memberId}
+      //
+      // Les snapshots des membres sont publics afin que les visiteurs
+      // puissent voir les membres d'un Circle sans être connectés.
+      // ───────────────────────────────────────────────────────────────────
+
       match /members/{memberId} {
+
         allow read: if true;
 
         allow create, update: if isSignedIn()
@@ -103,7 +171,14 @@ service cloud.firestore {
           && uid() == memberId;
       }
 
+
+      // ───────────────────────────────────────────────────────────────────
+      // LEGACY CIRCLE MESSAGES
+      // Conservé pour compatibilité avec l'ancien système.
+      // ───────────────────────────────────────────────────────────────────
+
       match /messages/{messageId} {
+
         allow read: if true;
 
         allow create: if isSignedIn()
@@ -114,51 +189,81 @@ service cloud.firestore {
         allow update, delete: if false;
       }
 
+
+      // ───────────────────────────────────────────────────────────────────
+      // LEGACY WEEKLY MOMENTS
+      // ───────────────────────────────────────────────────────────────────
+
       match /weeklyMoments/{momentId} {
+
         allow read: if true;
+
         allow write: if isSignedIn();
       }
     }
 
+
+    // ─────────────────────────────────────────────────────────────────────
     // EXISTING RONDA COLLECTIONS
+    // Conservées pour ne rien casser dans l'application existante.
+    // ─────────────────────────────────────────────────────────────────────
+
     match /events/{document=**} {
+
       allow read: if true;
+
       allow write: if isSignedIn();
     }
+
 
     match /jobs/{document=**} {
+
       allow read: if true;
+
       allow write: if isSignedIn();
     }
+
 
     match /meetup_participants/{document=**} {
+
       allow read: if true;
+
       allow write: if isSignedIn();
     }
+
 
     match /meetups/{document=**} {
+
       allow read: if true;
+
       allow write: if isSignedIn();
     }
+
 
     match /pending_events/{document=**} {
+
       allow read: if true;
+
       allow write: if isSignedIn();
     }
+
 
     match /ronda_users/{document=**} {
+
       allow read: if true;
+
       allow write: if isSignedIn();
     }
 
-    // Everything else denied by default.
+
+    // ─────────────────────────────────────────────────────────────────────
+    // DEFAULT DENY
+    // Tout ce qui n'est pas explicitement autorisé reste bloqué.
+    // ─────────────────────────────────────────────────────────────────────
+
     match /{document=**} {
+
       allow read, write: if false;
     }
   }
 }
-"""
-
-path = Path("/mnt/data/firestore.rules")
-path.write_text(rules, encoding="utf-8")
-print(f"Created: {path}")
