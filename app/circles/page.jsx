@@ -57,10 +57,6 @@ function normalizeType(value = '') {
     return 'Business'
   }
 
-  /*
-   * Nouveau fallback Ronda.
-   * On ne met plus Date par défaut.
-   */
   return 'Friends'
 }
 
@@ -75,16 +71,6 @@ function cleanCity(value = '') {
     .replace(/\s+/g, ' ')
 }
 
-
-/*
- * Certains anciens Circles n'ont pas de champ city
- * mais possèdent une ville dans leur ancien titre :
- *
- * "Newcomers in Berlin – Saturday Social Drinks"
- *
- * On essaie de la récupérer uniquement pour l'affichage.
- * Aucun ID / aucune URL Firestore n'est modifié.
- */
 
 function inferCityFromLegacyTitle(title = '') {
   const text = String(title || '').trim()
@@ -121,20 +107,6 @@ function getCircleCity(circle) {
    DISPLAY NAME
 ============================================================================ */
 
-/*
- * Type déjà affiché dans le badge.
- *
- * Donc :
- *
- * Friends
- * Ronda Club · BERLIN
- *
- * et PAS :
- *
- * Friends
- * Ronda Club · BERLIN · Friends
- */
-
 function buildCircleName(circle) {
   const city =
     getCircleCity(circle)
@@ -143,10 +115,6 @@ function buildCircleName(circle) {
     return `Ronda Club · ${city.toUpperCase()}`
   }
 
-  /*
-   * Pour un vieux Circle sans ville exploitable,
-   * on ne remet pas son ancien titre événementiel.
-   */
   return 'Ronda Club'
 }
 
@@ -258,13 +226,6 @@ export default function CirclesPage() {
             ? data
             : []
 
-        /*
-         * Real member counts
-         *
-         * Same source of truth as the Circle detail page:
-         * getCircleMembers(circle.id)
-         */
-
         const circlesWithRealCounts =
           await Promise.all(
             list.map(
@@ -324,11 +285,6 @@ export default function CirclesPage() {
               )
           )
         )
-
-
-        /*
-         * Creator names
-         */
 
         const creatorIds = [
           ...new Set(
@@ -761,11 +717,6 @@ export default function CirclesPage() {
                     circle.created_by_name ||
                     'Ronda member'
 
-                  const city =
-                    getCircleCity(
-                      circle
-                    )
-
                   const description =
                     String(
                       circle.description ||
@@ -784,7 +735,7 @@ export default function CirclesPage() {
                     >
 
 
-                      {/* TYPE + MEMBER COUNT */}
+                      {/* TYPE */}
 
                       <div className="circle-card-top">
 
@@ -794,14 +745,6 @@ export default function CirclesPage() {
                           }
                         >
                           {type}
-                        </span>
-
-
-                        <span className="circle-members">
-                          {count}{' '}
-                          {count === 1
-                            ? 'member'
-                            : 'members'}
                         </span>
 
                       </div>
@@ -887,20 +830,11 @@ export default function CirclesPage() {
 
                       <div className="circle-card-bottom">
 
-                        <span className="circle-city">
-
-                          {city
-                            ? city.toUpperCase()
-                            : 'RONDA CIRCLE'}
-
-                        </span>
-
-
                         <Link
                           href={`/circles/${circle.id}`}
                           className="circle-view"
                         >
-                          View Circle
+                          Join Circle
                         </Link>
 
                       </div>
@@ -1545,7 +1479,7 @@ export default function CirclesPage() {
             center;
 
           justify-content:
-            space-between;
+            flex-start;
 
           gap:
             12px;
@@ -1582,10 +1516,6 @@ export default function CirclesPage() {
         }
 
 
-        /*
-         * FRIENDS
-         */
-
         .circle-type-friends {
           background:
             #FFF0EB;
@@ -1594,10 +1524,6 @@ export default function CirclesPage() {
             #FF604E;
         }
 
-
-        /*
-         * DATE
-         */
 
         .circle-type-date {
           background:
@@ -1608,28 +1534,12 @@ export default function CirclesPage() {
         }
 
 
-        /*
-         * BUSINESS
-         */
-
         .circle-type-business {
           background:
             #EDF5FF;
 
           color:
             #397DC1;
-        }
-
-
-        .circle-members {
-          font-size:
-            0.7rem;
-
-          color:
-            #9A918B;
-
-          white-space:
-            nowrap;
         }
 
 
@@ -1760,6 +1670,9 @@ export default function CirclesPage() {
 
           margin:
             2px 0 14px;
+
+          min-width:
+            0;
         }
 
 
@@ -1770,8 +1683,14 @@ export default function CirclesPage() {
           align-items:
             center;
 
+          min-width:
+            0;
+
           min-height:
             34px;
+
+          overflow:
+            hidden;
         }
 
 
@@ -1821,6 +1740,9 @@ export default function CirclesPage() {
 
 
         .circle-social-count {
+          flex-shrink:
+            0;
+
           font-size:
             0.7rem;
 
@@ -1847,7 +1769,7 @@ export default function CirclesPage() {
             center;
 
           justify-content:
-            space-between;
+            flex-end;
 
           gap:
             12px;
@@ -1858,33 +1780,6 @@ export default function CirclesPage() {
           border-top:
             1px solid
             #F0EBE6;
-        }
-
-
-        .circle-city {
-          min-width:
-            0;
-
-          overflow:
-            hidden;
-
-          text-overflow:
-            ellipsis;
-
-          white-space:
-            nowrap;
-
-          font-size:
-            0.64rem;
-
-          font-weight:
-            700;
-
-          letter-spacing:
-            0.07em;
-
-          color:
-            #817A75;
         }
 
 
@@ -2035,6 +1930,15 @@ export default function CirclesPage() {
           .circle-type-filters {
             justify-content:
               flex-start;
+
+            flex-wrap:
+              wrap;
+          }
+
+
+          .circles-grid {
+            grid-template-columns:
+              1fr;
           }
 
         }
@@ -2049,6 +1953,18 @@ export default function CirclesPage() {
           .circles-page {
             padding:
               130px 12px 42px;
+
+            overflow-x:
+              hidden;
+          }
+
+
+          .circles-container {
+            max-width:
+              100%;
+
+            overflow-x:
+              hidden;
           }
 
 
@@ -2116,7 +2032,7 @@ export default function CirclesPage() {
             grid-template-columns:
               repeat(
                 4,
-                1fr
+                minmax(0, 1fr)
               );
 
             width:
@@ -2145,10 +2061,19 @@ export default function CirclesPage() {
 
             gap:
               10px;
+
+            width:
+              100%;
           }
 
 
           .circle-card {
+            width:
+              100%;
+
+            min-width:
+              0;
+
             min-height:
               0;
 
@@ -2164,14 +2089,38 @@ export default function CirclesPage() {
 
 
           .circle-name {
+            max-width:
+              100%;
+
             font-size:
               1rem;
+
+            overflow-wrap:
+              anywhere;
           }
 
 
           .circle-description {
             font-size:
               0.76rem;
+          }
+
+
+          .circle-social-proof {
+            width:
+              100%;
+
+            gap:
+              8px;
+          }
+
+
+          .circle-avatars {
+            flex:
+              1;
+
+            min-width:
+              0;
           }
 
 
@@ -2190,6 +2139,15 @@ export default function CirclesPage() {
           .circle-social-count {
             font-size:
               0.67rem;
+          }
+
+
+          .circle-card-bottom {
+            width:
+              100%;
+
+            justify-content:
+              flex-end;
           }
 
 
