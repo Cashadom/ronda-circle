@@ -1,108 +1,157 @@
-/* ─── Grille People ─────────────────────────────────────────────────────── */
+/* ==========================================================================
+   RONDA CLUB — PEOPLE GRID
+   CSS / VISUAL ONLY
+   Existing classes preserved
+   ========================================================================== */
+
+
+/* ==========================================================================
+   GRID WRAPPER
+   ========================================================================== */
 
 .circle-grid-section {
-  max-width: 1100px;
-  margin: 0 auto;
   width: 100%;
+  max-width: 1100px;
+
+  margin: 0 auto;
 }
 
 
-/* ─── Filtres ──────────────────────────────────────────────────────────── */
+/* ==========================================================================
+   FILTERS
+   ========================================================================== */
 
 .people-filters {
   display: flex;
   align-items: center;
-  gap: 10px;
   flex-wrap: wrap;
+
+  gap: 10px;
 
   margin-bottom: 20px;
 }
 
+
+/* ==========================================================================
+   SEARCH
+   ========================================================================== */
+
 .people-search {
   flex: 1 1 360px;
+
   min-width: 260px;
-  height: 44px;
+  height: 42px;
 
   box-sizing: border-box;
 
-  padding: 0 18px;
+  padding: 0 17px;
 
   font-family:
-    "Avenir Next",
-    "Segoe UI",
-    Inter,
+    "Manrope",
+    ui-sans-serif,
     system-ui,
-    sans-serif;
-
-  font-size: 0.86rem;
-  font-weight: 450;
-
-  color: #343434;
-  background: #FFFFFF;
-
-  border: 1px solid #E5E9EC;
-  border-radius: 999px;
-
-  outline: none;
-
-  transition:
-    border-color 0.18s ease,
-    box-shadow 0.18s ease;
-}
-
-.people-search::placeholder {
-  color: #9A9692;
-}
-
-.people-search:focus {
-  border-color: #A9CFE6;
-  box-shadow: 0 0 0 3px rgba(74, 168, 247, 0.08);
-}
-
-
-/* ─── Select Gender / Friends-Date-Business ────────────────────────────── */
-
-.people-filter-select {
-  height: 44px;
-  min-width: 145px;
-
-  padding: 0 38px 0 16px;
-
-  font-family:
-    "Avenir Next",
+    -apple-system,
+    BlinkMacSystemFont,
     "Segoe UI",
-    Inter,
-    system-ui,
     sans-serif;
 
   font-size: 0.84rem;
   font-weight: 500;
 
-  color: #4B4642;
-  background: #FFFFFF;
+  color: #2f2c2a;
+  background: #ffffff;
 
-  border: 1px solid #E5E9EC;
+  border: 1px solid #ebe4df;
   border-radius: 999px;
 
   outline: none;
-  cursor: pointer;
+
+  box-shadow:
+    0 1px 2px rgba(32, 24, 20, 0.02);
 
   transition:
     border-color 0.18s ease,
-    box-shadow 0.18s ease;
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.people-search::placeholder {
+  color: #a19b97;
+}
+
+.people-search:hover {
+  border-color: #ddd4ce;
+}
+
+.people-search:focus {
+  border-color: #ff6b5a;
+
+  box-shadow:
+    0 0 0 3px rgba(255, 107, 90, 0.08);
+
+  background: #ffffff;
+}
+
+
+/* ==========================================================================
+   SELECT FILTERS
+   ========================================================================== */
+
+.people-filter-select {
+  height: 42px;
+
+  min-width: 145px;
+
+  padding: 0 36px 0 15px;
+
+  font-family:
+    "Manrope",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 0.82rem;
+  font-weight: 500;
+
+  color: #4b4642;
+  background: #ffffff;
+
+  border: 1px solid #ebe4df;
+  border-radius: 999px;
+
+  outline: none;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 1px 2px rgba(32, 24, 20, 0.02);
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
 }
 
 .people-filter-select:hover {
-  border-color: #C8DCE8;
+  border-color: #ddd4ce;
 }
 
 .people-filter-select:focus {
-  border-color: #A9CFE6;
-  box-shadow: 0 0 0 3px rgba(74, 168, 247, 0.08);
+  border-color: #ff6b5a;
+
+  box-shadow:
+    0 0 0 3px rgba(255, 107, 90, 0.08);
+
+  background: #ffffff;
 }
 
 
-/* ─── Une personne par ligne ───────────────────────────────────────────── */
+/* ==========================================================================
+   PEOPLE GRID
+   ========================================================================== */
 
 .circle-grid {
   display: grid;
@@ -114,41 +163,47 @@
 }
 
 
-/* ─── Alternance très légère des lignes ───────────────────────────────── */
+/* ==========================================================================
+   VERY LIGHT ROW ALTERNATION
+   ========================================================================== */
 
 .circle-grid > .circle-card:nth-child(odd) {
-  background: #F4F9FC;
+  background: rgba(255, 255, 255, 0.98);
 }
 
 .circle-grid > .circle-card:nth-child(even) {
-  background: #FAFCFD;
+  background: rgba(255, 249, 247, 0.98);
 }
 
 
-/* ─── Pagination ───────────────────────────────────────────────────────── */
+/* ==========================================================================
+   PAGINATION
+   ========================================================================== */
 
 .people-pagination {
   display: flex;
   align-items: center;
   justify-content: center;
 
-  gap: 18px;
+  gap: 14px;
 
-  margin: 24px 0 12px;
+  margin: 22px 0 12px;
 }
 
 .pagination-info {
   font-family:
-    "Avenir Next",
-    "Segoe UI",
-    Inter,
+    "Manrope",
+    ui-sans-serif,
     system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
     sans-serif;
 
-  font-size: 0.8rem;
-  font-weight: 450;
+  font-size: 0.76rem;
+  font-weight: 500;
 
-  color: #817A75;
+  color: #8d8681;
 }
 
 .pagination-button {
@@ -156,40 +211,62 @@
   align-items: center;
   justify-content: center;
 
-  padding: 8px 18px;
+  min-height: 34px;
+
+  padding: 7px 15px;
 
   font-family:
-    "Avenir Next",
-    "Segoe UI",
-    Inter,
+    "Manrope",
+    ui-sans-serif,
     system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
     sans-serif;
 
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.74rem;
+  font-weight: 650;
 
-  color: #FF6B5A;
-  background: #FFFFFF;
+  color: #6f6965;
+  background: #ffffff;
 
-  border: 1px solid #F2C9C2;
+  border: 1px solid #ebe4df;
   border-radius: 999px;
 
   cursor: pointer;
 
+  box-shadow:
+    0 1px 2px rgba(32, 24, 20, 0.02);
+
   transition:
+    color 0.18s ease,
     background 0.18s ease,
     border-color 0.18s ease,
-    transform 0.18s ease;
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .pagination-button:hover {
-  background: #FFF5F2;
-  border-color: #FF6B5A;
+  color: #ff6b5a;
+
+  background: #fff8f6;
+
+  border-color: #f2c8c1;
+
   transform: translateY(-1px);
+
+  box-shadow:
+    0 3px 8px rgba(32, 24, 20, 0.035);
+}
+
+.pagination-button:active {
+  transform: translateY(0);
 }
 
 
-/* ─── Actions sous la grille ───────────────────────────────────────────── */
+/* ==========================================================================
+   ACTIONS UNDER GRID
+   ========================================================================== */
 
 .circle-grid-actions {
   display: flex;
@@ -203,68 +280,118 @@
 }
 
 
-/* ─── Bouton principal ─────────────────────────────────────────────────── */
+/* ==========================================================================
+   PRIMARY BUTTON
+   ========================================================================== */
 
 .btn-primary {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 44px;
+
+  padding: 0 28px;
 
   font-family:
-    "Avenir Next",
-    "Segoe UI",
-    Inter,
+    "Manrope",
+    ui-sans-serif,
     system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
     sans-serif;
 
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  font-weight: 700;
 
-  color: #FFFFFF;
-  background: #FF6B5A;
+  color: #ffffff;
+  background: #ff6b5a;
 
-  padding: 13px 30px;
-
-  border-radius: 999px;
   border: none;
+  border-radius: 999px;
+
+  text-decoration: none;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 3px 10px rgba(255, 107, 90, 0.12);
+
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.btn-primary:hover {
+  background: #f45f4f;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 5px 14px rgba(255, 107, 90, 0.17);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+
+/* ==========================================================================
+   SEE ALL LINK
+   ========================================================================== */
+
+.link-see-all {
+  font-family:
+    "Manrope",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 0.86rem;
+  font-weight: 600;
+
+  color: #ff6b5a;
 
   text-decoration: none;
 
   transition:
-    background 0.18s ease,
-    transform 0.18s ease;
-}
-
-.btn-primary:hover {
-  background: #F45542;
-  transform: translateY(-1px);
-}
-
-
-/* ─── Voir tous les profils ────────────────────────────────────────────── */
-
-.link-see-all {
-  font-family:
-    "Avenir Next",
-    "Segoe UI",
-    Inter,
-    system-ui,
-    sans-serif;
-
-  font-size: 0.9rem;
-  font-weight: 500;
-
-  color: #FF6B5A;
-
-  text-decoration: none;
-
-  transition: color 0.18s ease;
+    color 0.18s ease;
 }
 
 .link-see-all:hover {
-  color: #F45542;
+  color: #f45f4f;
 }
 
 
-/* ─── Mobile ───────────────────────────────────────────────────────────── */
+/* ==========================================================================
+   TABLET
+   ========================================================================== */
+
+@media (max-width: 820px) {
+
+  .people-filters {
+    gap: 9px;
+  }
+
+  .people-search {
+    flex-basis: 300px;
+  }
+
+  .circle-grid {
+    gap: 8px;
+  }
+
+}
+
+
+/* ==========================================================================
+   MOBILE
+   ========================================================================== */
 
 @media (max-width: 640px) {
 
@@ -282,58 +409,112 @@
 
     width: 100%;
     min-width: 0;
+    height: 40px;
 
-    height: 42px;
+    padding-left: 15px;
+    padding-right: 15px;
+
+    font-size: 0.79rem;
   }
 
   .people-filter-select {
     width: 100%;
     min-width: 0;
-
-    height: 42px;
+    height: 40px;
 
     padding-left: 13px;
+    padding-right: 30px;
+
+    font-size: 0.76rem;
   }
 
   .circle-grid {
     grid-template-columns: 1fr;
+
     gap: 7px;
   }
 
   .people-pagination {
     flex-wrap: wrap;
-    gap: 10px;
+
+    gap: 9px;
 
     margin-top: 20px;
   }
 
   .pagination-info {
     width: 100%;
-    text-align: center;
+
     order: -1;
+
+    text-align: center;
+
+    font-size: 0.72rem;
+  }
+
+  .pagination-button {
+    min-height: 32px;
+
+    padding: 6px 13px;
+
+    font-size: 0.7rem;
   }
 
   .circle-grid-actions {
     flex-direction: column;
     align-items: stretch;
 
-    text-align: center;
-
-    gap: 14px;
+    gap: 13px;
 
     margin-top: 24px;
     margin-bottom: 40px;
+
+    text-align: center;
   }
 
   .btn-primary {
-    text-align: center;
+    width: 100%;
+    min-height: 42px;
 
-    padding: 12px 20px;
+    padding: 0 20px;
 
-    font-size: 0.9rem;
+    font-size: 0.86rem;
   }
 
   .link-see-all {
     text-align: center;
+
+    font-size: 0.82rem;
   }
+
+}
+
+
+/* ==========================================================================
+   VERY SMALL MOBILE
+   ========================================================================== */
+
+@media (max-width: 380px) {
+
+  .people-filters {
+    gap: 7px;
+  }
+
+  .people-search {
+    height: 39px;
+
+    font-size: 0.76rem;
+  }
+
+  .people-filter-select {
+    height: 39px;
+
+    font-size: 0.72rem;
+  }
+
+  .pagination-button {
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+
 }
