@@ -144,32 +144,45 @@ export default function Navbar() {
           z-index: 200;
 
           width: 100%;
+          max-width: 100%;
 
-          background: rgba(255, 255, 255, 0.88);
+          box-sizing: border-box;
+
+          background: rgba(255, 255, 255, 0.92);
 
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
 
-          border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+          border-bottom:
+            1px solid
+            rgba(23, 23, 23, 0.04);
+
+          overflow-x: hidden;
 
           transition:
             background 0.3s ease,
-            border-color 0.3s ease;
-
-          box-sizing: border-box;
+            border-color 0.3s ease,
+            box-shadow 0.3s ease;
         }
 
 
         .ronda-navbar.scrolled {
-          background: rgba(255, 255, 255, 0.96);
+          background: rgba(255, 255, 255, 0.97);
 
-          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+          border-bottom:
+            1px solid
+            rgba(23, 23, 23, 0.065);
+
+          box-shadow:
+            0 4px 18px
+            rgba(32, 24, 20, 0.025);
         }
 
 
         .ronda-navbar-inner {
           width: 100%;
           max-width: 1280px;
+          min-width: 0;
 
           height: 90px;
 
@@ -179,6 +192,8 @@ export default function Navbar() {
           display: flex;
           align-items: center;
           justify-content: space-between;
+
+          gap: 24px;
 
           box-sizing: border-box;
         }
@@ -193,6 +208,8 @@ export default function Navbar() {
           align-items: center;
 
           gap: 16px;
+
+          flex: 1 1 auto;
 
           min-width: 0;
         }
@@ -213,33 +230,44 @@ export default function Navbar() {
 
           height: 76px;
           width: auto;
+          max-width: 100%;
 
           object-fit: contain;
         }
 
 
         .ronda-slogan {
+          min-width: 0;
+
           font-family:
-            "Avenir Next",
-            "Segoe UI",
-            Inter,
+            "Manrope",
+            ui-sans-serif,
             system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
             sans-serif;
 
-          font-size: 0.9rem;
-          font-weight: 450;
+          font-size: 0.88rem;
+          font-weight: 500;
 
-          color: var(--coral);
+          color: #FF6B5A;
 
           letter-spacing: -0.01em;
 
-          opacity: 0.85;
+          opacity: 0.9;
 
-          border-left: 1px solid #E9DDD4;
+          border-left:
+            1px solid
+            #EBE4DF;
 
           padding-left: 16px;
 
           white-space: nowrap;
+
+          overflow: hidden;
+
+          text-overflow: ellipsis;
         }
 
 
@@ -251,20 +279,26 @@ export default function Navbar() {
           display: flex;
           align-items: center;
 
+          flex-shrink: 0;
+
           gap: 4px;
+
+          min-width: 0;
         }
 
 
         .ronda-nav-link {
           font-family:
-            "Avenir Next",
-            "Segoe UI",
-            Inter,
+            "Manrope",
+            ui-sans-serif,
             system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
             sans-serif;
 
-          font-size: 0.84rem;
-          font-weight: 500;
+          font-size: 0.82rem;
+          font-weight: 550;
 
           color: #44403C;
 
@@ -274,12 +308,18 @@ export default function Navbar() {
 
           white-space: nowrap;
 
-          transition: color 0.2s ease;
+          border-radius: 999px;
+
+          transition:
+            color 0.2s ease,
+            background 0.2s ease;
         }
 
 
         .ronda-nav-link:hover {
-          color: var(--coral);
+          color: #FF6B5A;
+
+          background: #FFF5F2;
         }
 
 
@@ -291,6 +331,8 @@ export default function Navbar() {
           display: flex;
           align-items: center;
 
+          flex-shrink: 0;
+
           margin-left: 8px;
 
           text-decoration: none;
@@ -301,23 +343,44 @@ export default function Navbar() {
           width: 36px;
           height: 36px;
 
+          flex-shrink: 0;
+
+          box-sizing: border-box;
+
           border-radius: 50%;
 
           background-size: cover;
           background-position: center;
 
-          border: 1.5px solid rgba(255, 107, 81, 0.2);
+          border:
+            1.5px solid
+            rgba(
+              255,
+              107,
+              90,
+              0.22
+            );
 
           transition:
             transform 0.2s ease,
-            border-color 0.2s ease;
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
         }
 
 
         .ronda-avatar:hover {
           transform: scale(1.04);
 
-          border-color: var(--coral);
+          border-color: #FF6B5A;
+
+          box-shadow:
+            0 3px 10px
+            rgba(
+              255,
+              107,
+              90,
+              0.12
+            );
         }
 
 
@@ -326,38 +389,55 @@ export default function Navbar() {
           align-items: center;
           justify-content: center;
 
+          flex-shrink: 0;
+
           background: transparent;
 
-          color: var(--coral);
+          color: #FF6B5A;
 
           padding: 7px 20px;
 
           border-radius: 40px;
 
           font-family:
-            "Avenir Next",
-            "Segoe UI",
-            Inter,
+            "Manrope",
+            ui-sans-serif,
             system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
             sans-serif;
 
-          font-weight: 500;
-          font-size: 0.84rem;
+          font-weight: 600;
+          font-size: 0.82rem;
 
           text-decoration: none;
 
-          border: 1.5px solid var(--coral-border);
+          border:
+            1.5px solid
+            rgba(
+              255,
+              107,
+              90,
+              0.32
+            );
 
-          transition: all 0.2s ease;
+          transition:
+            background 0.2s ease,
+            color 0.2s ease,
+            border-color 0.2s ease,
+            transform 0.2s ease;
         }
 
 
         .ronda-signin:hover {
-          background: var(--coral);
+          background: #FF6B5A;
 
           color: #FFFFFF;
 
-          border-color: var(--coral);
+          border-color: #FF6B5A;
+
+          transform: translateY(-1px);
         }
 
 
@@ -379,11 +459,29 @@ export default function Navbar() {
 
           .ronda-navbar-inner {
             padding: 0 24px;
+
+            gap: 18px;
+          }
+
+
+          .ronda-brand {
+            gap: 12px;
           }
 
 
           .ronda-slogan {
-            font-size: 0.78rem;
+            font-size: 0.76rem;
+
+            padding-left: 12px;
+          }
+
+
+          .ronda-nav-link {
+            padding:
+              8px 8px;
+
+            font-size:
+              0.78rem;
           }
 
         }
@@ -415,6 +513,13 @@ export default function Navbar() {
             min-width: 0;
 
             gap: 9px;
+
+            overflow: hidden;
+          }
+
+
+          .ronda-logo-link {
+            flex-shrink: 0;
           }
 
 
@@ -428,22 +533,28 @@ export default function Navbar() {
           .ronda-slogan {
             display: block;
 
+            flex: 1 1 auto;
+
             min-width: 0;
             max-width: 130px;
 
             padding-left: 9px;
 
-            border-left: 1px solid #E9DDD4;
+            border-left:
+              1px solid
+              #EBE4DF;
 
-            font-size: 0.66rem;
+            font-size: 0.64rem;
             line-height: 1.25;
             font-weight: 500;
 
-            color: var(--coral);
+            color: #FF6B5A;
 
             letter-spacing: -0.01em;
 
             white-space: normal;
+
+            overflow: hidden;
 
             opacity: 0.9;
           }
@@ -480,7 +591,7 @@ export default function Navbar() {
           .ronda-mobile-profile .ronda-signin {
             padding: 6px 12px;
 
-            font-size: 0.74rem;
+            font-size: 0.72rem;
           }
 
 
@@ -490,6 +601,9 @@ export default function Navbar() {
           */
 
           .ronda-mobile-nav {
+            width: 100%;
+            max-width: 100%;
+
             height: 42px;
 
             display: flex;
@@ -500,28 +614,40 @@ export default function Navbar() {
 
             padding: 0 12px;
 
-            border-top: 1px solid rgba(0, 0, 0, 0.035);
-
             box-sizing: border-box;
+
+            border-top:
+              1px solid
+              rgba(
+                23,
+                23,
+                23,
+                0.035
+              );
+
+            overflow: hidden;
           }
 
 
           .ronda-mobile-link {
-            flex: 1;
+            flex: 1 1 0;
 
+            min-width: 0;
             max-width: 125px;
 
             text-align: center;
 
             font-family:
-              "Avenir Next",
-              "Segoe UI",
-              Inter,
+              "Manrope",
+              ui-sans-serif,
               system-ui,
+              -apple-system,
+              BlinkMacSystemFont,
+              "Segoe UI",
               sans-serif;
 
-            font-size: 0.76rem;
-            font-weight: 500;
+            font-size: 0.74rem;
+            font-weight: 550;
 
             color: #44403C;
 
@@ -529,12 +655,24 @@ export default function Navbar() {
 
             padding: 8px 4px;
 
+            border-radius: 999px;
+
             white-space: nowrap;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+            transition:
+              color 0.2s ease,
+              background 0.2s ease;
           }
 
 
           .ronda-mobile-link:active {
-            color: var(--coral);
+            color: #FF6B5A;
+
+            background: #FFF5F2;
           }
 
         }
@@ -570,7 +708,7 @@ export default function Navbar() {
 
             padding-left: 7px;
 
-            font-size: 0.61rem;
+            font-size: 0.59rem;
           }
 
 
@@ -581,7 +719,7 @@ export default function Navbar() {
 
 
           .ronda-mobile-link {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
           }
 
         }
