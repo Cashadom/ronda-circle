@@ -245,39 +245,14 @@ export default function ConnectionsPage() {
 
     return (
       <div
-        style={{
-          width: '100%',
-          boxSizing: 'border-box',
-
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-
-          gap: 18,
-
-          padding: '12px 14px',
-
-          background:
-            index % 2 === 0
-              ? '#F4F9FC'
-              : '#FAFCFD',
-
-          border:
-            '1px solid rgba(43,39,37,0.04)',
-
-          borderRadius: 10,
-        }}
+        className={
+          index % 2 === 0
+            ? 'connection-row connection-row-even'
+            : 'connection-row connection-row-odd'
+        }
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
+        <div className="connection-person">
 
-            flex: 1,
-            minWidth: 0,
-          }}
-        >
           <img
             src={person.photoURL || '/point.png'}
             alt={person.name}
@@ -285,68 +260,26 @@ export default function ConnectionsPage() {
               event.currentTarget.src =
                 '/point.png'
             }}
-            style={{
-              width: 44,
-              height: 44,
-
-              flex: '0 0 44px',
-
-              borderRadius: '50%',
-
-              objectFit: 'cover',
-              objectPosition: 'center',
-
-              background: '#FFFFFF',
-
-              border: '2px solid #FFFFFF',
-
-              boxShadow:
-                '0 2px 8px rgba(43,39,37,0.07)',
-            }}
+            className="connection-avatar"
           />
 
-          <div
-            style={{
-              minWidth: 0,
+          <div className="connection-info">
 
-              fontFamily:
-                '"Avenir Next", "Segoe UI", Inter, system-ui, sans-serif',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'baseline',
-                gap: 5,
+            <div className="connection-name-line">
 
-                minWidth: 0,
-              }}
-            >
               <span
+                className="connection-name"
                 style={{
-                  fontSize: '0.92rem',
-                  fontWeight: 700,
-
                   color: genderColor(
                     person.gender
                   ),
-
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
                 }}
               >
                 {person.name}
               </span>
 
               {person.gender && (
-                <span
-                  style={{
-                    color: '#817A75',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                  }}
-                >
+                <span className="connection-gender">
                   {person.gender === 'female'
                     ? '♀'
                     : person.gender === 'male'
@@ -354,54 +287,30 @@ export default function ConnectionsPage() {
                       : ''}
                 </span>
               )}
+
             </div>
 
             {person.city && (
-              <div
-                style={{
-                  marginTop: 2,
-
-                  color: '#817A75',
-
-                  fontSize: '0.75rem',
-                }}
-              >
+              <div className="connection-city">
                 {person.city}
               </div>
             )}
 
             {person.intentions.length > 0 && (
-              <div
-                style={{
-                  marginTop: 3,
-
-                  color: '#FF604E',
-
-                  fontSize: '0.72rem',
-                  fontWeight: 500,
-
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
+              <div className="connection-intentions">
                 {person.intentions
                   .slice(0, 5)
                   .join(' · ')}
               </div>
             )}
+
           </div>
+
         </div>
 
-        <div
-          style={{
-            flexShrink: 0,
 
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
+        <div className="connection-actions">
+
           {mode === 'received' && (
             <>
               <button
@@ -412,29 +321,7 @@ export default function ConnectionsPage() {
                 onClick={() =>
                   handleIgnore(connection.id)
                 }
-                style={{
-                  border:
-                    '1px solid #E9DDD4',
-
-                  background: '#FFFFFF',
-
-                  color: '#706965',
-
-                  padding: '7px 14px',
-
-                  borderRadius: 999,
-
-                  fontFamily:
-                    '"Avenir Next", "Segoe UI", Inter, system-ui, sans-serif',
-
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-
-                  cursor:
-                    processingId === connection.id
-                      ? 'default'
-                      : 'pointer',
-                }}
+                className="connection-button connection-button-secondary"
               >
                 Ignore
               </button>
@@ -447,28 +334,7 @@ export default function ConnectionsPage() {
                 onClick={() =>
                   handleAccept(connection.id)
                 }
-                style={{
-                  border: 'none',
-
-                  background: CORAL,
-
-                  color: '#FFFFFF',
-
-                  padding: '7px 16px',
-
-                  borderRadius: 999,
-
-                  fontFamily:
-                    '"Avenir Next", "Segoe UI", Inter, system-ui, sans-serif',
-
-                  fontSize: '0.75rem',
-                  fontWeight: 650,
-
-                  cursor:
-                    processingId === connection.id
-                      ? 'default'
-                      : 'pointer',
-                }}
+                className="connection-button connection-button-primary"
               >
                 {processingId === connection.id
                   ? '...'
@@ -477,61 +343,23 @@ export default function ConnectionsPage() {
             </>
           )}
 
+
           {mode === 'sent' && (
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-
-                minWidth: 82,
-
-                padding: '7px 15px',
-
-                borderRadius: 999,
-
-                background: '#F3EEEA',
-
-                color: '#817A75',
-
-                fontSize: '0.74rem',
-                fontWeight: 600,
-              }}
-            >
+            <span className="connection-pending">
               Pending
             </span>
           )}
 
+
           {mode === 'connected' && (
             <Link
               href={`/messages/${connection.id}`}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-
-                minWidth: 82,
-
-                padding: '7px 16px',
-
-                borderRadius: 999,
-
-                background: CORAL,
-
-                color: '#FFFFFF',
-
-                textDecoration: 'none',
-
-                fontFamily:
-                  '"Avenir Next", "Segoe UI", Inter, system-ui, sans-serif',
-
-                fontSize: '0.75rem',
-                fontWeight: 650,
-              }}
+              className="connection-message"
             >
               Message
             </Link>
           )}
+
         </div>
       </div>
     )
@@ -541,183 +369,87 @@ export default function ConnectionsPage() {
     <>
       <Navbar />
 
-      <main
-        style={{
-          minHeight: '100vh',
-          background: '#FFF8F2',
+      <main className="connections-page">
 
-          padding:
-            '125px 20px 70px',
+        <div className="connections-container">
 
-          boxSizing: 'border-box',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 900,
-            margin: '0 auto',
-          }}
-        >
-          <div
-            style={{
-              marginBottom: 38,
-            }}
-          >
-            <h1
-              style={{
-                fontFamily:
-                  '"Avenir Next", "Segoe UI", Inter, system-ui, sans-serif',
 
-                fontSize:
-                  'clamp(2rem, 5vw, 2.7rem)',
+          {/* HEADER */}
 
-                fontWeight: 700,
+          <div className="connections-header">
 
-                color: '#2B2725',
-
-                letterSpacing: '-0.03em',
-
-                margin: '0 0 8px',
-              }}
-            >
+            <h1>
               Connections
             </h1>
 
-            <p
-              style={{
-                margin: 0,
-
-                color: '#706965',
-
-                fontSize: '0.92rem',
-
-                lineHeight: 1.5,
-              }}
-            >
+            <p>
               Connect with people you want to know.
             </p>
+
           </div>
 
+
+          {/* ERROR */}
+
           {error && (
-            <div
-              style={{
-                padding: '12px 16px',
-
-                marginBottom: 24,
-
-                borderRadius: 12,
-
-                background: '#FFF0EB',
-
-                color: CORAL,
-
-                fontSize: '0.82rem',
-              }}
-            >
+            <div className="connections-error">
               {error}
             </div>
           )}
 
+
+          {/* LOADING */}
+
           {loading ? (
-            <div
-              style={{
-                display: 'grid',
-                gap: 8,
-              }}
-            >
+
+            <div className="connections-loading">
+
               {Array.from({
                 length: 6,
               }).map((_, index) => (
                 <div
                   key={index}
-                  style={{
-                    height: 68,
-
-                    borderRadius: 10,
-
-                    background:
-                      index % 2 === 0
-                        ? '#F4F9FC'
-                        : '#FAFCFD',
-
-                    animation:
-                      'pulse 1.4s infinite',
-                  }}
+                  className={
+                    index % 2 === 0
+                      ? 'connection-skeleton connection-skeleton-even'
+                      : 'connection-skeleton connection-skeleton-odd'
+                  }
                 />
               ))}
+
             </div>
+
           ) : (
             <>
+
+
               {/* RECEIVED */}
 
-              <section
-                style={{
-                  marginBottom: 38,
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'baseline',
-                    justifyContent:
-                      'space-between',
+              <section className="connections-section">
 
-                    gap: 15,
+                <div className="connections-section-heading">
 
-                    marginBottom: 13,
-                  }}
-                >
-                  <h2
-                    style={{
-                      margin: 0,
-
-                      fontFamily:
-                        '"Avenir Next", "Segoe UI", Inter, system-ui, sans-serif',
-
-                      fontSize: '1.1rem',
-                      fontWeight: 700,
-
-                      color: '#2B2725',
-                    }}
-                  >
+                  <h2>
                     Requests
                   </h2>
 
-                  <span
-                    style={{
-                      color: '#A39C97',
-                      fontSize: '0.75rem',
-                    }}
-                  >
+                  <span className="connections-count">
                     {received.length}
                   </span>
+
                 </div>
 
+
                 {received.length === 0 ? (
-                  <div
-                    style={{
-                      padding: '18px',
 
-                      borderRadius: 10,
-
-                      background: '#FAFCFD',
-
-                      color: '#817A75',
-
-                      fontSize: '0.82rem',
-                    }}
-                  >
+                  <div className="connections-empty">
                     No new connection requests.
                   </div>
+
                 ) : (
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns:
-                        '1fr',
-                      gap: 8,
-                    }}
-                  >
+
+                  <div className="connections-list">
+
                     {received.map(
                       (connection, index) => (
                         <PersonRow
@@ -728,93 +460,50 @@ export default function ConnectionsPage() {
                         />
                       )
                     )}
+
                   </div>
+
                 )}
+
               </section>
 
 
               {/* CONNECTED */}
 
-              <section
-                style={{
-                  marginBottom: 38,
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'baseline',
-                    justifyContent:
-                      'space-between',
+              <section className="connections-section">
 
-                    gap: 15,
+                <div className="connections-section-heading">
 
-                    marginBottom: 13,
-                  }}
-                >
-                  <h2
-                    style={{
-                      margin: 0,
-
-                      fontFamily:
-                        '"Avenir Next", "Segoe UI", Inter, system-ui, sans-serif',
-
-                      fontSize: '1.1rem',
-                      fontWeight: 700,
-
-                      color: '#2B2725',
-                    }}
-                  >
+                  <h2>
                     Your connections
                   </h2>
 
-                  <span
-                    style={{
-                      color: CORAL,
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                    }}
-                  >
+                  <span className="connections-count connections-count-coral">
                     {connected.length} / 20
                   </span>
+
                 </div>
 
+
                 {connected.length === 0 ? (
-                  <div
-                    style={{
-                      padding: '20px',
 
-                      borderRadius: 10,
+                  <div className="connections-empty">
 
-                      background: '#FAFCFD',
-
-                      color: '#817A75',
-
-                      fontSize: '0.82rem',
-                    }}
-                  >
                     You don't have any connections yet.{' '}
 
                     <Link
                       href="/members"
-                      style={{
-                        color: CORAL,
-                        fontWeight: 600,
-                        textDecoration: 'none',
-                      }}
+                      className="connections-discover"
                     >
                       Discover people →
                     </Link>
+
                   </div>
+
                 ) : (
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns:
-                        '1fr',
-                      gap: 8,
-                    }}
-                  >
+
+                  <div className="connections-list">
+
                     {connected.map(
                       (connection, index) => (
                         <PersonRow
@@ -825,61 +514,35 @@ export default function ConnectionsPage() {
                         />
                       )
                     )}
+
                   </div>
+
                 )}
+
               </section>
 
 
               {/* SENT */}
 
               {sent.length > 0 && (
-                <section>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'baseline',
-                      justifyContent:
-                        'space-between',
 
-                      gap: 15,
+                <section className="connections-section connections-section-last">
 
-                      marginBottom: 13,
-                    }}
-                  >
-                    <h2
-                      style={{
-                        margin: 0,
+                  <div className="connections-section-heading">
 
-                        fontFamily:
-                          '"Avenir Next", "Segoe UI", Inter, system-ui, sans-serif',
-
-                        fontSize: '1.1rem',
-                        fontWeight: 700,
-
-                        color: '#2B2725',
-                      }}
-                    >
+                    <h2>
                       Sent requests
                     </h2>
 
-                    <span
-                      style={{
-                        color: '#A39C97',
-                        fontSize: '0.75rem',
-                      }}
-                    >
+                    <span className="connections-count">
                       {sent.length}
                     </span>
+
                   </div>
 
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns:
-                        '1fr',
-                      gap: 8,
-                    }}
-                  >
+
+                  <div className="connections-list">
+
                     {sent.map(
                       (connection, index) => (
                         <PersonRow
@@ -890,27 +553,1124 @@ export default function ConnectionsPage() {
                         />
                       )
                     )}
+
                   </div>
+
                 </section>
+
               )}
+
             </>
           )}
+
         </div>
+
       </main>
 
       <Footer />
 
-      <style jsx>{`
+
+      <style jsx global>{`
+
+        /* ================================================================
+           PAGE
+        ================================================================= */
+
+        .connections-page {
+          width: 100%;
+          max-width: 100%;
+
+          min-height: 100vh;
+
+          padding:
+            125px 20px 70px;
+
+          box-sizing:
+            border-box;
+
+          background:
+            #FFFFFF;
+
+          overflow-x:
+            hidden;
+
+          font-family:
+            "Manrope",
+            ui-sans-serif,
+            system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            sans-serif;
+
+          color:
+            #25211F;
+        }
+
+
+        .connections-container {
+          width: 100%;
+
+          max-width: 900px;
+
+          min-width: 0;
+
+          margin:
+            0 auto;
+
+          box-sizing:
+            border-box;
+        }
+
+
+        /* ================================================================
+           HEADER
+        ================================================================= */
+
+        .connections-header {
+          width: 100%;
+
+          min-width: 0;
+
+          margin-bottom:
+            38px;
+        }
+
+
+        .connections-header h1 {
+          margin:
+            0 0 8px;
+
+          color:
+            #25211F;
+
+          font-size:
+            clamp(
+              2rem,
+              5vw,
+              2.7rem
+            );
+
+          font-weight:
+            750;
+
+          line-height:
+            1.08;
+
+          letter-spacing:
+            -0.035em;
+        }
+
+
+        .connections-header p {
+          margin:
+            0;
+
+          color:
+            #746F6B;
+
+          font-size:
+            0.9rem;
+
+          line-height:
+            1.5;
+        }
+
+
+        /* ================================================================
+           ERROR
+        ================================================================= */
+
+        .connections-error {
+          width:
+            100%;
+
+          padding:
+            12px 16px;
+
+          margin-bottom:
+            24px;
+
+          box-sizing:
+            border-box;
+
+          border:
+            1px solid
+            #FFD8D1;
+
+          border-radius:
+            12px;
+
+          background:
+            #FFF5F2;
+
+          color:
+            #FF6B5A;
+
+          font-size:
+            0.82rem;
+        }
+
+
+        /* ================================================================
+           SECTION
+        ================================================================= */
+
+        .connections-section {
+          width:
+            100%;
+
+          min-width:
+            0;
+
+          margin-bottom:
+            38px;
+        }
+
+
+        .connections-section-last {
+          margin-bottom:
+            0;
+        }
+
+
+        .connections-section-heading {
+          display:
+            flex;
+
+          align-items:
+            baseline;
+
+          justify-content:
+            space-between;
+
+          width:
+            100%;
+
+          min-width:
+            0;
+
+          gap:
+            15px;
+
+          margin-bottom:
+            13px;
+        }
+
+
+        .connections-section-heading h2 {
+          min-width:
+            0;
+
+          margin:
+            0;
+
+          color:
+            #25211F;
+
+          font-size:
+            1.08rem;
+
+          font-weight:
+            700;
+
+          line-height:
+            1.3;
+
+          letter-spacing:
+            -0.02em;
+        }
+
+
+        .connections-count {
+          flex-shrink:
+            0;
+
+          color:
+            #9A9591;
+
+          font-size:
+            0.74rem;
+
+          font-weight:
+            550;
+        }
+
+
+        .connections-count-coral {
+          color:
+            #FF6B5A;
+
+          font-weight:
+            700;
+        }
+
+
+        /* ================================================================
+           LIST
+        ================================================================= */
+
+        .connections-list,
+        .connections-loading {
+          display:
+            grid;
+
+          grid-template-columns:
+            minmax(
+              0,
+              1fr
+            );
+
+          width:
+            100%;
+
+          min-width:
+            0;
+
+          gap:
+            8px;
+        }
+
+
+        /* ================================================================
+           ROW
+        ================================================================= */
+
+        .connection-row {
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            space-between;
+
+          width:
+            100%;
+
+          max-width:
+            100%;
+
+          min-width:
+            0;
+
+          gap:
+            18px;
+
+          padding:
+            13px 14px;
+
+          box-sizing:
+            border-box;
+
+          border:
+            1px solid
+            #EBE4DF;
+
+          border-radius:
+            16px;
+
+          overflow:
+            hidden;
+
+          transition:
+            transform 0.18s ease,
+            border-color 0.18s ease,
+            box-shadow 0.18s ease,
+            background 0.18s ease;
+        }
+
+
+        .connection-row-even {
+          background:
+            #FFFFFF;
+        }
+
+
+        .connection-row-odd {
+          background:
+            #FFF9F7;
+        }
+
+
+        .connection-row:hover {
+          transform:
+            translateY(-1px);
+
+          border-color:
+            #DDD4CE;
+
+          box-shadow:
+            0 6px 18px
+            rgba(
+              32,
+              24,
+              20,
+              0.045
+            );
+        }
+
+
+        /* ================================================================
+           PERSON
+        ================================================================= */
+
+        .connection-person {
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          flex:
+            1 1 auto;
+
+          min-width:
+            0;
+
+          gap:
+            13px;
+
+          overflow:
+            hidden;
+        }
+
+
+        .connection-avatar {
+          width:
+            52px;
+
+          height:
+            52px;
+
+          flex:
+            0 0 52px;
+
+          box-sizing:
+            border-box;
+
+          border:
+            1px solid
+            #F0EAE6;
+
+          border-radius:
+            15px;
+
+          object-fit:
+            cover;
+
+          object-position:
+            center;
+
+          background:
+            #F8F5F3;
+
+          box-shadow:
+            0 2px 8px
+            rgba(
+              43,
+              39,
+              37,
+              0.055
+            );
+        }
+
+
+        .connection-info {
+          flex:
+            1 1 auto;
+
+          min-width:
+            0;
+
+          overflow:
+            hidden;
+        }
+
+
+        .connection-name-line {
+          display:
+            flex;
+
+          align-items:
+            baseline;
+
+          min-width:
+            0;
+
+          gap:
+            5px;
+
+          overflow:
+            hidden;
+        }
+
+
+        .connection-name {
+          display:
+            block;
+
+          min-width:
+            0;
+
+          overflow:
+            hidden;
+
+          text-overflow:
+            ellipsis;
+
+          white-space:
+            nowrap;
+
+          font-size:
+            0.92rem;
+
+          font-weight:
+            700;
+
+          line-height:
+            1.35;
+        }
+
+
+        .connection-gender {
+          flex-shrink:
+            0;
+
+          color:
+            #817A75;
+
+          font-size:
+            0.78rem;
+
+          font-weight:
+            600;
+        }
+
+
+        .connection-city {
+          margin-top:
+            2px;
+
+          color:
+            #817A75;
+
+          font-size:
+            0.71rem;
+
+          font-weight:
+            500;
+
+          white-space:
+            nowrap;
+
+          overflow:
+            hidden;
+
+          text-overflow:
+            ellipsis;
+        }
+
+
+        .connection-intentions {
+          margin-top:
+            3px;
+
+          color:
+            #FF6B5A;
+
+          font-size:
+            0.71rem;
+
+          font-weight:
+            550;
+
+          white-space:
+            nowrap;
+
+          overflow:
+            hidden;
+
+          text-overflow:
+            ellipsis;
+        }
+
+
+        /* ================================================================
+           ACTIONS
+        ================================================================= */
+
+        .connection-actions {
+          display:
+            flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            flex-end;
+
+          flex-shrink:
+            0;
+
+          gap:
+            8px;
+        }
+
+
+        .connection-button,
+        .connection-message,
+        .connection-pending {
+          display:
+            inline-flex;
+
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          min-height:
+            34px;
+
+          min-width:
+            82px;
+
+          padding:
+            0 15px;
+
+          box-sizing:
+            border-box;
+
+          border-radius:
+            999px;
+
+          font-family:
+            "Manrope",
+            ui-sans-serif,
+            system-ui,
+            sans-serif;
+
+          font-size:
+            0.72rem;
+
+          font-weight:
+            650;
+
+          white-space:
+            nowrap;
+        }
+
+
+        .connection-button {
+          cursor:
+            pointer;
+
+          transition:
+            background 0.18s ease,
+            color 0.18s ease,
+            border-color 0.18s ease,
+            transform 0.18s ease;
+        }
+
+
+        .connection-button:disabled {
+          cursor:
+            default;
+
+          opacity:
+            0.65;
+        }
+
+
+        .connection-button-secondary {
+          border:
+            1px solid
+            #E6DDD8;
+
+          background:
+            #FFFFFF;
+
+          color:
+            #706965;
+        }
+
+
+        .connection-button-secondary:hover:not(:disabled) {
+          border-color:
+            #FFBDB3;
+
+          color:
+            #FF6B5A;
+
+          background:
+            #FFF9F7;
+        }
+
+
+        .connection-button-primary {
+          border:
+            1px solid
+            #FF6B5A;
+
+          background:
+            #FF6B5A;
+
+          color:
+            #FFFFFF;
+
+          box-shadow:
+            0 3px 9px
+            rgba(
+              255,
+              107,
+              90,
+              0.12
+            );
+        }
+
+
+        .connection-button-primary:hover:not(:disabled) {
+          background:
+            #F45F4F;
+
+          border-color:
+            #F45F4F;
+
+          transform:
+            translateY(-1px);
+        }
+
+
+        .connection-message {
+          border:
+            1px solid
+            #FF6B5A;
+
+          background:
+            #FF6B5A;
+
+          color:
+            #FFFFFF;
+
+          text-decoration:
+            none;
+
+          box-shadow:
+            0 3px 9px
+            rgba(
+              255,
+              107,
+              90,
+              0.12
+            );
+
+          transition:
+            background 0.18s ease,
+            border-color 0.18s ease,
+            transform 0.18s ease;
+        }
+
+
+        .connection-message:hover {
+          background:
+            #F45F4F;
+
+          border-color:
+            #F45F4F;
+
+          transform:
+            translateY(-1px);
+        }
+
+
+        .connection-pending {
+          border:
+            1px solid
+            #FFD9D2;
+
+          background:
+            #FFF4F1;
+
+          color:
+            #FF6B5A;
+        }
+
+
+        /* ================================================================
+           EMPTY
+        ================================================================= */
+
+        .connections-empty {
+          width:
+            100%;
+
+          padding:
+            18px;
+
+          box-sizing:
+            border-box;
+
+          border:
+            1px solid
+            #F0EAE6;
+
+          border-radius:
+            14px;
+
+          background:
+            #FFF9F7;
+
+          color:
+            #817A75;
+
+          font-size:
+            0.81rem;
+
+          line-height:
+            1.5;
+        }
+
+
+        .connections-discover {
+          color:
+            #FF6B5A;
+
+          font-weight:
+            650;
+
+          text-decoration:
+            none;
+        }
+
+
+        .connections-discover:hover {
+          color:
+            #F45F4F;
+        }
+
+
+        /* ================================================================
+           SKELETON
+        ================================================================= */
+
+        .connection-skeleton {
+          width:
+            100%;
+
+          height:
+            78px;
+
+          box-sizing:
+            border-box;
+
+          border:
+            1px solid
+            #F0EAE6;
+
+          border-radius:
+            16px;
+
+          animation:
+            pulse 1.4s infinite;
+        }
+
+
+        .connection-skeleton-even {
+          background:
+            #FFFFFF;
+        }
+
+
+        .connection-skeleton-odd {
+          background:
+            #FFF9F7;
+        }
+
+
+        /* ================================================================
+           TABLET
+        ================================================================= */
+
+        @media (max-width: 820px) {
+
+          .connections-page {
+            padding:
+              120px 16px 56px;
+          }
+
+
+          .connections-header {
+            margin-bottom:
+              32px;
+          }
+
+
+          .connection-row {
+            gap:
+              14px;
+          }
+
+        }
+
+
+        /* ================================================================
+           MOBILE
+        ================================================================= */
+
+        @media (max-width: 640px) {
+
+          .connections-page {
+            padding:
+              112px 12px 44px;
+          }
+
+
+          .connections-container {
+            max-width:
+              100%;
+          }
+
+
+          .connections-header {
+            margin-bottom:
+              28px;
+          }
+
+
+          .connections-header h1 {
+            font-size:
+              1.75rem;
+          }
+
+
+          .connections-header p {
+            font-size:
+              0.82rem;
+          }
+
+
+          .connections-section {
+            margin-bottom:
+              30px;
+          }
+
+
+          .connection-row {
+            align-items:
+              flex-start;
+
+            flex-direction:
+              column;
+
+            gap:
+              12px;
+
+            padding:
+              12px;
+
+            border-radius:
+              14px;
+          }
+
+
+          .connection-person {
+            width:
+              100%;
+
+            gap:
+              11px;
+          }
+
+
+          .connection-avatar {
+            width:
+              48px;
+
+            height:
+              48px;
+
+            flex-basis:
+              48px;
+
+            border-radius:
+              13px;
+          }
+
+
+          .connection-name {
+            font-size:
+              0.86rem;
+          }
+
+
+          .connection-city {
+            font-size:
+              0.68rem;
+          }
+
+
+          .connection-intentions {
+            font-size:
+              0.68rem;
+          }
+
+
+          .connection-actions {
+            width:
+              100%;
+
+            justify-content:
+              flex-end;
+          }
+
+
+          .connection-button,
+          .connection-message,
+          .connection-pending {
+            min-height:
+              33px;
+
+            min-width:
+              78px;
+
+            padding:
+              0 14px;
+
+            font-size:
+              0.7rem;
+          }
+
+        }
+
+
+        /* ================================================================
+           SMALL MOBILE
+        ================================================================= */
+
+        @media (max-width: 420px) {
+
+          .connections-page {
+            padding-left:
+              10px;
+
+            padding-right:
+              10px;
+          }
+
+
+          .connection-row {
+            padding:
+              10px;
+          }
+
+
+          .connection-avatar {
+            width:
+              44px;
+
+            height:
+              44px;
+
+            flex-basis:
+              44px;
+
+            border-radius:
+              12px;
+          }
+
+
+          .connection-actions {
+            gap:
+              6px;
+          }
+
+
+          .connection-button,
+          .connection-message,
+          .connection-pending {
+            min-width:
+              74px;
+
+            padding:
+              0 12px;
+          }
+
+        }
+
+
+        /* ================================================================
+           VERY SMALL MOBILE
+        ================================================================= */
+
+        @media (max-width: 360px) {
+
+          .connections-page {
+            padding-left:
+              8px;
+
+            padding-right:
+              8px;
+          }
+
+
+          .connection-avatar {
+            width:
+              42px;
+
+            height:
+              42px;
+
+            flex-basis:
+              42px;
+          }
+
+
+          .connection-name {
+            font-size:
+              0.82rem;
+          }
+
+
+          .connection-actions {
+            width:
+              100%;
+          }
+
+
+          .connection-button,
+          .connection-message,
+          .connection-pending {
+            flex:
+              1 1 auto;
+
+            min-width:
+              0;
+          }
+
+        }
+
+
+        /* ================================================================
+           ANIMATION
+        ================================================================= */
+
         @keyframes pulse {
+
           0%,
           100% {
-            opacity: 1;
+            opacity:
+              1;
           }
 
           50% {
-            opacity: 0.5;
+            opacity:
+              0.5;
           }
+
         }
+
       `}</style>
     </>
   )
