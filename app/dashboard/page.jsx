@@ -235,7 +235,7 @@ export default function DashboardPage() {
 
                 <div>
 
-                  <p className="dashboard-eyebrow">
+                  <p className="dashboard-eyebrow dashboard-live-eyebrow">
                     COMMUNITY ACTIVITY
                   </p>
 
@@ -483,14 +483,10 @@ export default function DashboardPage() {
           border-radius: 22px;
 
           background:
-            rgba(
-              255,
-              255,
-              255,
-              0.12
-            );
+            #FFFFFF;
 
-          color: #FFFFFF;
+          color:
+            #FF6B5A;
 
           text-align: center;
         }
@@ -513,10 +509,10 @@ export default function DashboardPage() {
             999px;
 
           background:
-            #FFFFFF;
+            #FF6B5A;
 
           color:
-            #FF6B5A;
+            #FFFFFF;
 
           font: inherit;
 
@@ -568,22 +564,17 @@ export default function DashboardPage() {
               255,
               255,
               255,
-              0.32
+              0.82
             );
 
           border-radius:
             22px;
 
           background:
-            rgba(
-              255,
-              255,
-              255,
-              0.13
-            );
+            #FFFFFF;
 
           color:
-            #FFFFFF;
+            #FF6B5A;
 
           box-shadow:
             0 16px 40px
@@ -594,18 +585,35 @@ export default function DashboardPage() {
               0.08
             );
 
-          backdrop-filter:
-            blur(8px);
+          transition:
+            transform 0.18s ease,
+            box-shadow 0.18s ease,
+            border-color 0.18s ease;
         }
 
 
         .dashboard-card:hover {
           background:
+            #FFFFFF;
+
+          transform:
+            translateY(-2px);
+
+          border-color:
             rgba(
               255,
               255,
               255,
-              0.18
+              1
+            );
+
+          box-shadow:
+            0 20px 46px
+            rgba(
+              120,
+              35,
+              25,
+              0.12
             );
         }
 
@@ -617,7 +625,7 @@ export default function DashboardPage() {
             8px;
 
           color:
-            #FFFFFF;
+            #FF6B5A;
 
           font-size:
             clamp(
@@ -639,7 +647,7 @@ export default function DashboardPage() {
           display: block;
 
           color:
-            #FFFFFF;
+            #FF6B5A;
 
           font-size:
             0.8rem;
@@ -659,9 +667,9 @@ export default function DashboardPage() {
           color:
             rgba(
               255,
-              255,
-              255,
-              0.7
+              107,
+              90,
+              0.76
             );
 
           font-size:
@@ -704,18 +712,36 @@ export default function DashboardPage() {
               255,
               255,
               255,
-              0.32
+              0.82
             );
 
           border-radius:
             22px;
 
           background:
+            #FFFFFF;
+
+          color:
+            #FF6B5A;
+
+          box-shadow:
+            0 16px 40px
+            rgba(
+              120,
+              35,
+              25,
+              0.08
+            );
+        }
+
+
+        .dashboard-live-eyebrow {
+          color:
             rgba(
               255,
-              255,
-              255,
-              0.13
+              107,
+              90,
+              0.72
             );
         }
 
@@ -728,7 +754,7 @@ export default function DashboardPage() {
             0 0 10px;
 
           color:
-            #FFFFFF;
+            #FF6B5A;
 
           font-size:
             clamp(
@@ -754,9 +780,9 @@ export default function DashboardPage() {
           color:
             rgba(
               255,
-              255,
-              255,
-              0.74
+              107,
+              90,
+              0.76
             );
 
           font-size:
@@ -787,21 +813,16 @@ export default function DashboardPage() {
             1px solid
             rgba(
               255,
-              255,
-              255,
-              0.22
+              107,
+              90,
+              0.16
             );
 
           border-radius:
             16px;
 
           background:
-            rgba(
-              255,
-              255,
-              255,
-              0.11
-            );
+            #FFF5F2;
 
           text-align:
             center;
@@ -817,9 +838,9 @@ export default function DashboardPage() {
           color:
             rgba(
               255,
-              255,
-              255,
-              0.62
+              107,
+              90,
+              0.68
             );
 
           font-size:
@@ -837,7 +858,7 @@ export default function DashboardPage() {
           display: block;
 
           color:
-            #FFFFFF;
+            #FF6B5A;
 
           font-size:
             1.9rem;
@@ -855,8 +876,8 @@ export default function DashboardPage() {
           color:
             rgba(
               255,
-              255,
-              255,
+              107,
+              90,
               0.72
             );
 
