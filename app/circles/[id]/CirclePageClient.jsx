@@ -1283,6 +1283,22 @@ export default function CirclePageClient() {
           </section>
 
 
+          {/* SPONSORED BANNER */}
+
+          <div className="circle-sponsored-banner">
+            <a
+              rel="sponsored"
+              href="https://www.awin1.com/cread.php?s=4575486&v=93343&q=538055&r=1460568"
+              target="_blank"
+            >
+              <img
+                src="https://www.awin1.com/cshow.php?s=4575486&v=93343&q=538055&r=1460568"
+                alt="Sponsored"
+              />
+            </a>
+          </div>
+
+
           {/* BOTTOM */}
 
           <div className="circle-bottom">
@@ -1928,6 +1944,32 @@ export default function CirclePageClient() {
           color: #9A918B;
 
           font-size: 0.82rem;
+        }
+
+
+        /* SPONSORED BANNER */
+
+        .circle-sponsored-banner {
+          display: flex;
+          justify-content: center;
+          width: 100%;
+          margin: 22px 0 0;
+          overflow: hidden;
+        }
+
+
+        .circle-sponsored-banner a {
+          display: block;
+          max-width: 100%;
+          line-height: 0;
+        }
+
+
+        .circle-sponsored-banner img {
+          display: block;
+          max-width: 100%;
+          height: auto;
+          border: 0;
         }
 
 
